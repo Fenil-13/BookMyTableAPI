@@ -26,7 +26,7 @@ Instant restaurant reservation at your favorite restaurants across several citie
 #### Update User Profile
 
 ```http
-  POST /api/items/${id}
+  POST /update_user
 ```
 
 | Parameter | Type     |
