@@ -66,7 +66,7 @@ def signupUser():
     return jsonify(result)
 
 
-@app.route("/update_user", methods=["GET"])
+@app.route("/update_user",methods=["GET", "POST"])
 def updateUser():
     result = dict()
     result["success"] = 0
