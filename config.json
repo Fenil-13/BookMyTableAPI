@@ -1,0 +1,9 @@
+{
+    "params":{
+        "local_server":"True",
+        "local_uri":"mysql://root:@localhost/lightroomapp",
+        "prod_uri":"mysql://root:Fenil@123fm@localhost/lightroomapp",
+        "upload_location":"G:\\BookMyTableApi\\BookMyTableAPI\\static\\profile_pic\\",
+        "image_path":"http://192.168.1.106:5000/static/images/"
+    }   
+}
