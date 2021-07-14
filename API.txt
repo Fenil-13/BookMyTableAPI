@@ -1,0 +1,12 @@
+signupUser
+
+Response:
+
+{
+    success: 1,
+    userData:{
+        user_id:"1",
+        user_name:"fenil013",
+        user_email:"1"
+    }
+}
