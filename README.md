@@ -45,12 +45,13 @@ Instant restaurant reservation at your favorite restaurants across several citie
 #### Login User Profile
 
 ```http
-  GET /login_user
+  POST /login_user
 ```
 
 | Parameter | Type     |
 | :-------- | :------- |
 | `user_phone_number` | `string` |
+| `user_password` | `string` |
 
   
 ## Contributing
