@@ -1,9 +1,7 @@
 {
-    "params":{
-        "local_server":"True",
-        "database_url":"mongodb+srv://admin:krupal123@cluster0.r0oii.mongodb.net/BookMyTable?retryWrites=true&w=majority",
-        "local_upload_location":"G:\\BookMyTableApi\\BookMyTableAPI\\static\\profile_pic\\",
-        "prod_upload_location":"G:\\BookMyTableApi\\BookMyTableAPI\\static\\profile_pic\\",
-        "image_path":"http://127.0.0.1:5000/static/profile_pic/"
-    }   
+    "params": {
+        "local_server": "True",
+        "database_url": "mongodb+srv://admin:krupal123@cluster0.r0oii.mongodb.net/BookMyTable?retryWrites=true&w=majority",
+        "image_path": "http://127.0.0.1:5000/static/"
+    }
 }
