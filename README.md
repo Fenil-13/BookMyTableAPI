@@ -366,4 +366,4 @@ Contributions are always welcome!
 
 ## Support
 
-For support, email fjmoradiya@gmail.com or krupalpatel1611@gmail.com .
+For support, email fjmoradiya@gmail.com or krupalpatel1611@gmail.com . 
