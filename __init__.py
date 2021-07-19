@@ -354,7 +354,39 @@ def updateBookTable():
         result["status"] = "updated_book_table_successfully"
     return jsonify(result)
 
+@app.route("/get_booking_history",methods=["GET","POST"])
+def getBookingHistory():
+    result=dict()
+    result["success"]=0
+    if request.method=="GET":
+        booking_data=None
+        if request.form["by_user"]=="True":
+            booking_data=bookingCollection.find({"user_id":request.form["user_id"]})
+        else:
+            booking_data=bookingCollection.find({"restaurant_id":request.form["restaurant_id"]})
 
+        result["success"]=1
+        booking_data_list=[]
+        if booking_data is None:
+            result["status"]="no_booking_history"
+            return jsonify(result)
+
+        for book_data in booking_data:
+            booking=dict()
+            booking["booking_id"]=str(book_data["_id"])
+            booking["user_id"]=book_data["user_id"]
+            booking["restaurant_id"]=book_data["restaurant_id"]
+            booking["restaurant_name"]=book_data["restaurant_name"]
+            booking["booking_time"]=book_data["booking_time"]
+            booking["booking_date"]=book_data["booking_date"]
+            booking["table_type"]=book_data["table_type"]
+            booking["table_quantity"]=book_data["table_quantity"]
+            booking["status"]=book_data["status"]
+            booking_data_list.append(booking)
+
+        result["booking_data"]=booking_data_list
+        return jsonify(result)    
+    return jsonify(result)
 def getDefaultRestaurantTable(restaurant_tables):
     restaurant_tables.clear()
     for i in range(9):

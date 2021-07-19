@@ -12,17 +12,16 @@ Instant restaurant reservation at your favorite restaurants across several citie
   POST /sign_up_user
 ```
 
-| Parameter | Type     |
-| :-------- | :------- |
+| Parameter           | Type     |
+| :------------------ | :------- |
 | `user_phone_number` | `string` |
-| `user_name` | `string` |
-| `user_email` | `string` |
-| `user_password` | `string` |
-| `user_auth_id` | `string` |
-| `user_location` | `string` |
-| `user_profile_pic` | `string` |
+| `user_name`         | `string` |
+| `user_email`        | `string` |
+| `user_password`     | `string` |
+| `user_auth_id`      | `string` |
+| `user_location`     | `string` |
+| `user_profile_pic`  | `string` |
 | `user_device_token` | `string` |
-
 
 #### Response
 
@@ -40,17 +39,16 @@ Instant restaurant reservation at your favorite restaurants across several citie
   }
 ```
 
-
 #### Login User Profile
 
 ```http
   GET /login_user
 ```
 
-| Parameter | Type     |
-| :-------- | :------- |
+| Parameter           | Type     |
+| :------------------ | :------- |
 | `user_phone_number` | `string` |
-| `user_password` | `string` |
+| `user_password`     | `string` |
 
 #### Response
 
@@ -72,7 +70,7 @@ Instant restaurant reservation at your favorite restaurants across several citie
           "user_name": "kp18",
           "user_phone_number": "9876543210",
           "user_profile_pic": "sdfsdfdsdff_profile_pic_IMG_5044.JPG"
-       }   
+       }
     }
 ```
 
@@ -82,19 +80,18 @@ Instant restaurant reservation at your favorite restaurants across several citie
   POST /update_user
 ```
 
-| Parameter | Type     |
-| :-------- | :------- |
-| `user_id` | `string` |
-| `user_phone_number` | `string` |
-| `user_name` | `string` |
-| `user_email` | `string` |
-| `user_password` | `string` |
-| `user_auth_id` | `string` |
-| `user_location` | `string` |
-| `user_profile_pic` | `string` |
-| `user_device_token` | `string` |
+| Parameter             | Type     |
+| :-------------------- | :------- |
+| `user_id`             | `string` |
+| `user_phone_number`   | `string` |
+| `user_name`           | `string` |
+| `user_email`          | `string` |
+| `user_password`       | `string` |
+| `user_auth_id`        | `string` |
+| `user_location`       | `string` |
+| `user_profile_pic`    | `string` |
+| `user_device_token`   | `string` |
 | `profile_pic_updated` | `string` |
-
 
 #### Response
 
@@ -118,16 +115,16 @@ Instant restaurant reservation at your favorite restaurants across several citie
   POST /create_restaurant
 ```
 
-| Parameter | Type     |
-| :-------- | :------- |
-| `user_id` | `string` |
-| `restaurant_name` | `string` |
-| `restaurant_short_desc` | `string` |
-| `restaurant_long_desc` | `string` |
-| `restaurant_opening_time` | `string` |
-| `restaurant_closing_time` | `string` |
+| Parameter                   | Type     |
+| :-------------------------- | :------- |
+| `user_id`                   | `string` |
+| `restaurant_name`           | `string` |
+| `restaurant_short_desc`     | `string` |
+| `restaurant_long_desc`      | `string` |
+| `restaurant_opening_time`   | `string` |
+| `restaurant_closing_time`   | `string` |
 | `restaurant_contact_number` | `string` |
-| `restaurant_location` | `string` |
+| `restaurant_location`       | `string` |
 
 #### Response
 
@@ -236,59 +233,63 @@ Instant restaurant reservation at your favorite restaurants across several citie
   }
 ```
 
-#### Update Restaurant Picture 
+#### Update Restaurant Picture
 
 ```http
   POST /upload_restaurant_pic
 ```
 
-| Parameter | Type     |Desc   |
-| :-------- | :------- |:------|
-| `restaurant_id` | `string` ||
-| `updated_pics_index` | `string` |True/False|
-| `upload_0` | `string` ||
-| `upload_1` | `string` ||
-| `---` | `string` |continue|
+| Parameter            | Type     | Desc       |
+| :------------------- | :------- | :--------- |
+| `restaurant_id`      | `string` |            |
+| `updated_pics_index` | `string` | True/False |
+| `upload_0`           | `string` |            |
+| `upload_1`           | `string` |            |
+| `---`                | `string` | continue   |
 
 #### Response
+
 ```bash
   {
         "success": 1,
         "status": "image_uploded"
   }
 ```
+
 ```bash
   {
         "success": 0
   }
 ```
 
-
-#### Update Restaurant Table 
+#### Update Restaurant Table
 
 ```http
   POST /upload_restaurant_table
 ```
 
-| Parameter | Type     |Desc   |
-| :-------- | :------- |:------|
-| `restaurant_id` | `string` ||
-| `type` | `string` |2_seater|
-| `total_table` | `string` ||
-| `available_table` | `string` ||
+| Parameter         | Type     | Desc     |
+| :---------------- | :------- | :------- |
+| `restaurant_id`   | `string` |          |
+| `type`            | `string` | 2_seater |
+| `total_table`     | `string` |          |
+| `available_table` | `string` |          |
 
 #### Response
+
 ```bash
   {
         "success": 1,
         "status": "2_seater_table_updated"
   }
 ```
+
 ```bash
   {
         "success": 0
   }
 ```
+
 ```bash
   {
         "success": 1.
@@ -302,18 +303,19 @@ Instant restaurant reservation at your favorite restaurants across several citie
   POST /book_table
 ```
 
-| Parameter | Type     |Desc   |
-| :-------- | :------- |:------|
-| `user_id` | `string` ||
-| `restaurant_id` | `string` ||
-| `restaurant_name` | `string` ||
-| `booking_time` | `string` ||
-| `booking_date` | `string` ||
-| `table_type` | `string` |2_seater|
-| `table_quantity` | `string` |1/2|
-| `status` | `string` |pending/confirm|
+| Parameter         | Type     | Desc            |
+| :---------------- | :------- | :-------------- |
+| `user_id`         | `string` |                 |
+| `restaurant_id`   | `string` |                 |
+| `restaurant_name` | `string` |                 |
+| `booking_time`    | `string` |                 |
+| `booking_date`    | `string` |                 |
+| `table_type`      | `string` | 2_seater        |
+| `table_quantity`  | `string` | 1/2             |
+| `status`          | `string` | pending/confirm |
 
 #### Response
+
 ```bash
   {
     "order_data": {
@@ -323,34 +325,39 @@ Instant restaurant reservation at your favorite restaurants across several citie
     "success": 1
 }
 ```
+
 ```bash
   {
         "success": 0
   }
 ```
+
 #### Update Book Table
 
 ```http
   POST /update_book_table
 ```
 
-| Parameter | Type     |Desc   |
-| :-------- | :------- |:------|
-| `booking_id` | `string` ||
-| `status` | `string` |pending/confirm|
+| Parameter    | Type     | Desc            |
+| :----------- | :------- | :-------------- |
+| `booking_id` | `string` |                 |
+| `status`     | `string` | pending/confirm |
 
 #### Response
+
 ```bash
   {
     "status": "updated_book_table_successfully",
     "success": 1
   }
 ```
+
 ```bash
   {
         "success": 0
   }
 ```
+
 ```bash
   {
         "success": 0,
@@ -358,12 +365,67 @@ Instant restaurant reservation at your favorite restaurants across several citie
   }
 ```
 
+#### Get Booking History
+
+```http
+  POST /get_booking_history
+```
+
+| Parameter       | Type     | Desc       |
+| :-------------- | :------- | :--------- |
+| `user_id`       | `string` |            |
+| `by_user`       | `string` | True/False |
+| `restaurant_id` | `string` |            |
+
+#### Response
+
+```bash
+  {
+    "success": 1
+    "booking_data": [
+        {
+            "booking_date": "02/08/2001",
+            "booking_id": "60f580eb0ddc47cfab8a814c",
+            "booking_time": "07:00 PM",
+            "restaurant_id": "60f570b163fa428c63631d87",
+            "restaurant_name": "Mcdonadls",
+            "status": "pending",
+            "table_quantity": "3",
+            "table_type": "2_seater",
+            "user_id": "60f1b747d3deb982aea658a6"
+        },
+        {
+            "booking_date": "02/08/2001",
+            "booking_id": "60f585250aebcfc5f0279d3c",
+            "booking_time": "07:00 PM",
+            "restaurant_id": "60f570b163fa428c63631d87",
+            "restaurant_name": "Mcdonadls",
+            "status": "pending",
+            "table_quantity": "3",
+            "table_type": "2_seater",
+            "user_id": "60f1b747d3deb982aea658a6"
+        }
+    ]
+}
+```
+
+```bash
+  {
+        "success": 1,
+        "status":"no_booking_history"
+  }
+```
+
+```bash
+  {
+        "success": 0
+  }
+```
 
 ## Contributing
 
 Contributions are always welcome!
 
-
 ## Support
 
-For support, email fjmoradiya@gmail.com or krupalpatel1611@gmail.com . 
+For support, email fjmoradiya@gmail.com or krupalpatel1611@gmail.com .
