@@ -245,7 +245,7 @@ Instant restaurant reservation at your favorite restaurants across several citie
 | Parameter | Type     |Desc   |
 | :-------- | :------- |:------|
 | `restaurant_id` | `string` ||
-| `updated_pics_index` | `string` |"True"/"False"|
+| `updated_pics_index` | `string` |True/False|
 | `upload_0` | `string` ||
 | `upload_1` | `string` ||
 | `---` | `string` |continue|
@@ -260,6 +260,39 @@ Instant restaurant reservation at your favorite restaurants across several citie
 ```bash
   {
         "success": 0
+  }
+```
+
+
+#### Update Restaurant Table 
+
+```http
+  POST /upload_restaurant_table
+```
+
+| Parameter | Type     |Desc   |
+| :-------- | :------- |:------|
+| `restaurant_id` | `string` ||
+| `type` | `string` |2_seater|
+| `total_table` | `string` ||
+| `available_table` | `string` ||
+
+#### Response
+```bash
+  {
+        "success": 1,
+        "status": "2_seater_table_updated"
+  }
+```
+```bash
+  {
+        "success": 0
+  }
+```
+```bash
+  {
+        "success": 1.
+        "status":"restaurant_not_available"
   }
 ```
 

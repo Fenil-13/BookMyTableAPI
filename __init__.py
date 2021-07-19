@@ -18,8 +18,10 @@ else:
 
 app = Flask(__name__)
 if local_server:
-    app.config["profile_pic_upload_location"] = os.path.join(os.getcwd() + "\static\\profile_pic\\")
-    app.config["restaurant_pic_upload_location"] = os.path.join(os.getcwd() + "\static\\restaurant_profile_pic\\")
+    app.config["profile_pic_upload_location"] = os.path.join(
+        os.getcwd() + "\static\\profile_pic\\")
+    app.config["restaurant_pic_upload_location"] = os.path.join(
+        os.getcwd() + "\static\\restaurant_profile_pic\\")
 else:
     app.config["upload_location"] = os.path.join(os.getcwd() + "\static")
     app.config["upload_location"] = os.path.join(os.getcwd() + "\static")
@@ -164,18 +166,14 @@ def createRestaurant():
     result["success"] = 0
     if request.method == "POST":
 
-        wait_user = dict()
-        wait_user["user_id"] = ""
-        wait_user["for"] = "2_seater"
+        # wait_user = dict()
+        # wait_user["user_id"] = ""
+        # wait_user["for"] = "2_seater"
 
         waiting_users = []
 
-        table = dict()
-        table["type"] = "2_seater"
-        table["total_table"] = "3"
-        table["available_table"] = "5"
-
         restaurant_tables = []
+        restaurant_tables = getDefaultRestaurantTable(restaurant_tables)
 
         restaurant = {
             "user_id": request.form["user_id"],
@@ -215,8 +213,8 @@ def getRestaurant():
         result["success"] = 1
         restaurant_data = []
         for res in restaurant:
-            restaurant_pics=res["restaurant_pics"]
-            restaurant_pics=appendUrl(restaurant_pics)
+            restaurant_pics = res["restaurant_pics"]
+            restaurant_pics = appendUrl(restaurant_pics)
             rest_data = dict()
             rest_data["user_id"] = res["user_id"]
             rest_data["restaurant_name"] = res["restaurant_name"]
@@ -252,76 +250,125 @@ def uploadRestaurantPics():
 
         if request.form["updated_pics_index"] != "True":
             restaurant_pics = restaurant["restaurant_pics"]
-            restaurant_pics=checkPicsAndUploads(request,restaurant_pics)
-            
+            restaurant_pics = checkPicsAndUploads(request, restaurant_pics)
+
         else:
             restaurant_pics = restaurant["restaurant_pics"]
-            restaurant_pics=checkPicsAndReUploads(request,restaurant_pics)
+            restaurant_pics = checkPicsAndReUploads(request, restaurant_pics)
 
         old_rest = {"_id": ObjectId(request.form["restaurant_id"])}
         updated_rest = {
-                "$set": {
-                    "restaurant_pics": restaurant_pics,
-                }
+            "$set": {
+                "restaurant_pics": restaurant_pics,
             }
-        restaurantCollection.update_one(old_rest,updated_rest)
+        }
+        restaurantCollection.update_one(old_rest, updated_rest)
         result["success"] = 1
-        result["status"]="image_uploded"
-        return jsonify(result)    
+        result["status"] = "image_uploded"
+        return jsonify(result)
     return jsonify(result)
 
 
+@app.route("/upload_restaurant_table", methods=["GET", "POST"])
+def updateTable():
+    result = dict()
+    result["success"] = 0
+    if request.method == "POST":
+        restaurant = restaurantCollection.find_one(
+            {"_id": ObjectId( request.form["restaurant_id"])})
+
+        if restaurant is None:
+            result["success"] = 1
+            result["status"] = "restaurant_not_available"
+            return jsonify(result)
+        restaurant_tables = restaurant["restaurant_tables"]
+        type = request.form["type"]
+        index = int(type.replace("_seater", ""))-1
+        restaurant_tables[index]["total_table"] = request.form["total_table"]
+        restaurant_tables[index]["available_table"] = request.form[
+            "available_table"]
+
+        old_restaurant = {"_id": ObjectId( request.form["restaurant_id"])}
+        new_restaurant = {
+            "$set": {
+                "restaurant_tables": restaurant_tables
+            }
+        }
+
+        restaurantCollection.update_one(old_restaurant,new_restaurant)
+        result["success"] = 1
+        result["status"] = request.form["type"]+"_table_updated"
+        return jsonify(result)
+    return jsonify(result)
+
+
+def getDefaultRestaurantTable(restaurant_tables):
+    restaurant_tables.clear()
+    for i in range(9):
+        table = dict()
+        table["type"] = f"{i+1}_seater"
+        table["total_table"] = "0"
+        table["available_table"] = "0"
+        restaurant_tables.append(table)
+    return restaurant_tables
+
+
 def appendUrl(restaurant_pics):
-    res_data=[]
+    res_data = []
     for res in restaurant_pics:
-        res_data.append(params["image_path"]+"restaurant_profile_pic/"+res)
+        res_data.append(params["image_path"] + "restaurant_profile_pic/" + res)
     return res_data
 
-def checkPicsAndUploads(request,restaurant_pics):
+
+def checkPicsAndUploads(request, restaurant_pics):
     rest_pic = request.files["upload_0"]
-  
+
     for i in range(6):
-        param="upload_"+str(i)
+        param = "upload_" + str(i)
         if (param in request.files):
             rest_pic = request.files[param]
-            f=FileStorage(filename=rest_pic.filename)
-            rest_pic_file_name = secure_filename(request.form["restaurant_id"] +
-                                                 "_restaurant_profile_pic_" +
-                                                 param+"."+f.filename.split('.')[1])
+            f = FileStorage(filename=rest_pic.filename)
+            rest_pic_file_name = secure_filename(
+                request.form["restaurant_id"] + "_restaurant_profile_pic_" +
+                param + "." + f.filename.split('.')[1])
             rest_pic.save(
-                os.path.join(
-                    app.config["restaurant_pic_upload_location"], rest_pic_file_name))
+                os.path.join(app.config["restaurant_pic_upload_location"],
+                             rest_pic_file_name))
             restaurant_pics.append(rest_pic_file_name)
 
-    return restaurant_pics      
+    return restaurant_pics
 
-def checkPicsAndReUploads(request,restaurant_pics):
-    avail_len=len(restaurant_pics)
+
+def checkPicsAndReUploads(request, restaurant_pics):
+    avail_len = len(restaurant_pics)
     for i in range(6):
-        param="upload_"+str(i)
+        param = "upload_" + str(i)
         if (param in request.files):
 
             # First Delating File  and if user enter this indexing images 2nd time
-            if i<avail_len :    
-                if(os.path.isfile(app.config["restaurant_pic_upload_location"]+restaurant_pics[i])):
-                    os.remove(app.config["restaurant_pic_upload_location"]+restaurant_pics[i])
-            
+            if i < avail_len:
+                if (os.path.isfile(
+                        app.config["restaurant_pic_upload_location"] +
+                        restaurant_pics[i])):
+                    os.remove(app.config["restaurant_pic_upload_location"] +
+                              restaurant_pics[i])
 
             rest_pic = request.files[param]
 
-            f=FileStorage(filename=rest_pic.filename)
-            rest_pic_file_name = secure_filename(request.form["restaurant_id"] +
-                                                 "_restaurant_profile_pic_" +
-                                                 param+"."+f.filename.split('.')[1])
+            f = FileStorage(filename=rest_pic.filename)
+            rest_pic_file_name = secure_filename(
+                request.form["restaurant_id"] + "_restaurant_profile_pic_" +
+                param + "." + f.filename.split('.')[1])
             rest_pic.save(
-                os.path.join(
-                    app.config["restaurant_pic_upload_location"], rest_pic_file_name))
+                os.path.join(app.config["restaurant_pic_upload_location"],
+                             rest_pic_file_name))
             if i < avail_len:
-                restaurant_pics[i]=rest_pic_file_name
+                restaurant_pics[i] = rest_pic_file_name
             else:
                 restaurant_pics.append(rest_pic_file_name)
 
-    return restaurant_pics        
+    return restaurant_pics
+
 
 if __name__ == "__main__":
     app.run(debug=True)
