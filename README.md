@@ -310,7 +310,7 @@ Instant restaurant reservation at your favorite restaurants across several citie
 | `booking_time` | `string` ||
 | `booking_date` | `string` ||
 | `table_type` | `string` |2_seater|
-| `table_quantity` | `string` |2_seater|
+| `table_quantity` | `string` |1/2|
 | `status` | `string` |pending/confirm|
 
 #### Response
@@ -337,7 +337,7 @@ Instant restaurant reservation at your favorite restaurants across several citie
 | Parameter | Type     |Desc   |
 | :-------- | :------- |:------|
 | `booking_id` | `string` ||
-| `status` | `string` ||
+| `status` | `string` |pending/confirm|
 
 #### Response
 ```bash
