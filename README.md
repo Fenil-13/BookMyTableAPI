@@ -296,6 +296,69 @@ Instant restaurant reservation at your favorite restaurants across several citie
   }
 ```
 
+#### Book Table
+
+```http
+  POST /book_table
+```
+
+| Parameter | Type     |Desc   |
+| :-------- | :------- |:------|
+| `user_id` | `string` ||
+| `restaurant_id` | `string` ||
+| `restaurant_name` | `string` ||
+| `booking_time` | `string` ||
+| `booking_date` | `string` ||
+| `table_type` | `string` |2_seater|
+| `table_quantity` | `string` |2_seater|
+| `status` | `string` |pending/confirm|
+
+#### Response
+```bash
+  {
+    "order_data": {
+        "booking_id": "60f580eb0ddc47cfab8a814c",
+        "status": "pending"
+    },
+    "success": 1
+}
+```
+```bash
+  {
+        "success": 0
+  }
+```
+#### Update Book Table
+
+```http
+  POST /update_book_table
+```
+
+| Parameter | Type     |Desc   |
+| :-------- | :------- |:------|
+| `booking_id` | `string` ||
+| `status` | `string` ||
+
+#### Response
+```bash
+  {
+    "status": "updated_book_table_successfully",
+    "success": 1
+  }
+```
+```bash
+  {
+        "success": 0
+  }
+```
+```bash
+  {
+        "success": 0,
+        "status":"not_available_booking"
+  }
+```
+
+
 ## Contributing
 
 Contributions are always welcome!

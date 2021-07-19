@@ -33,6 +33,7 @@ client = MongoClient(params["database_url"],
 db = client.BookMyTable
 userCollection = db.Users
 restaurantCollection = db.Restaurant
+bookingCollection = db.Booking
 
 
 @app.route("/sign_up_user", methods=["GET", "POST"])
@@ -281,6 +282,7 @@ def updateTable():
             result["success"] = 1
             result["status"] = "restaurant_not_available"
             return jsonify(result)
+
         restaurant_tables = restaurant["restaurant_tables"]
         type = request.form["type"]
         index = int(type.replace("_seater", ""))-1
@@ -299,6 +301,57 @@ def updateTable():
         result["success"] = 1
         result["status"] = request.form["type"]+"_table_updated"
         return jsonify(result)
+    return jsonify(result)
+
+@app.route("/book_table",methods=["GET","POST"])
+def bookTable():
+    result=dict()
+    result["success"]=0
+    if request.method=="POST":
+        order = {
+                "user_id": request.form["user_id"],
+                "restaurant_id": request.form["restaurant_id"],
+                "restaurant_name": request.form["restaurant_name"],
+                "booking_time": request.form["booking_time"],
+                "booking_date": request.form["booking_date"],
+                "table_type": request.form["table_type"],
+                "table_quantity": request.form["table_quantity"],
+                "status": request.form["status"],
+            }
+
+        booking_id=bookingCollection.insert_one(order)
+
+       
+        order_data=dict()
+        order_data["booking_id"]=str(booking_id.inserted_id)
+        order_data["status"]=request.form["status"]
+
+        result["success"] = 1
+        result["order_data"] =order_data
+        return jsonify(result)
+    return jsonify(result)
+
+
+@app.route("/update_book_table",methods=["GET","POST"])
+def updateBookTable():
+    result=dict()
+    result["success"]=0
+    if request.method=="POST":
+        order=bookingCollection.find_one({"_id":ObjectId(request.form["booking_id"])})
+        if order is None:
+            result["success"]=1
+            result["status"]="not_available_booking"
+            return jsonify(result)
+        old_order = {"_id": ObjectId( request.form["booking_id"])}
+        new_order = {
+            "$set": {
+                "status": request.form["status"]
+            }
+        }
+        bookingCollection.update_one(old_order,new_order)
+
+        result["success"] = 1
+        result["status"] = "updated_book_table_successfully"
     return jsonify(result)
 
 
@@ -368,6 +421,7 @@ def checkPicsAndReUploads(request, restaurant_pics):
                 restaurant_pics.append(rest_pic_file_name)
 
     return restaurant_pics
+
 
 
 if __name__ == "__main__":
