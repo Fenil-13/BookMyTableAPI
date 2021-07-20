@@ -183,14 +183,7 @@ Instant restaurant reservation at your favorite restaurants across several citie
                 ...
             ],
             "status": "Under Verification",
-            "user_id": "60f1b98c85357a37bdf8d626",
-            "waiting_users": [
-                {
-                    "for": "2_seater",
-                    "user_id": "156532"
-                },
-                ...
-            ]
+            "user_id": "60f1b98c85357a37bdf8d626"
         },
         {
             "restaurant_closing_time": "12:00 PM",
@@ -204,8 +197,7 @@ Instant restaurant reservation at your favorite restaurants across several citie
             "restaurant_short_desc": "The Best Hostel Now",
             "restaurant_tables": [],
             "status": "Pending",
-            "user_id": "60f1b98c85357a37bdf8d626",
-            "waiting_users": []
+            "user_id": "60f1b98c85357a37bdf8d626"
         },
         {
             "restaurant_closing_time": "12:00 PM",
@@ -219,8 +211,7 @@ Instant restaurant reservation at your favorite restaurants across several citie
             "restaurant_short_desc": "McDonald's Corporation is an American fast food company",
             "restaurant_tables": [],
             "status": "Pending",
-            "user_id": "60f1b98c85357a37bdf8d626",
-            "waiting_users": []
+            "user_id": "60f1b98c85357a37bdf8d626"
         }
     ],
     "success": 1
