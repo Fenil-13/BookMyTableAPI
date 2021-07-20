@@ -338,10 +338,11 @@ Instant restaurant reservation at your favorite restaurants across several citie
   POST /update_book_table
 ```
 
-| Parameter    | Type     | Desc            |
-| :----------- | :------- | :-------------- |
-| `booking_id` | `string` |                 |
-| `status`     | `string` | pending/confirm |
+| Parameter              | Type     | Desc            |
+| :--------------------- | :------- | :-------------- |
+| `booking_id`           | `string` |                 |
+| `status`               | `string` | pending/confirm |
+| `confirm_booking_time` | `string` |                 |
 
 #### Response
 
@@ -387,6 +388,7 @@ Instant restaurant reservation at your favorite restaurants across several citie
             "booking_date": "02/08/2001",
             "booking_id": "60f580eb0ddc47cfab8a814c",
             "booking_time": "07:00 PM",
+            "confirm_booking_time": "",
             "restaurant_id": "60f570b163fa428c63631d87",
             "restaurant_name": "Mcdonadls",
             "status": "pending",
@@ -398,6 +400,7 @@ Instant restaurant reservation at your favorite restaurants across several citie
             "booking_date": "02/08/2001",
             "booking_id": "60f585250aebcfc5f0279d3c",
             "booking_time": "07:00 PM",
+            "confirm_booking_time": "",
             "restaurant_id": "60f570b163fa428c63631d87",
             "restaurant_name": "Mcdonadls",
             "status": "pending",

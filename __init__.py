@@ -167,12 +167,6 @@ def createRestaurant():
     result["success"] = 0
     if request.method == "POST":
 
-        # wait_user = dict()
-        # wait_user["user_id"] = ""
-        # wait_user["for"] = "2_seater"
-
-        waiting_users = []
-
         restaurant_tables = []
         restaurant_tables = getDefaultRestaurantTable(restaurant_tables)
 
@@ -188,7 +182,6 @@ def createRestaurant():
             request.form["restaurant_contact_number"],
             "restaurant_location": request.form["restaurant_location"],
             "status": "Pending",
-            "waiting_users": waiting_users,
             "restaurant_tables": restaurant_tables
         }
 
@@ -230,7 +223,6 @@ def getRestaurant():
             rest_data["restaurant_contact_number"] = res[
                 "restaurant_contact_number"]
             rest_data["restaurant_location"] = res["restaurant_location"]
-            rest_data["waiting_users"] = res["waiting_users"]
             rest_data["restaurant_tables"] = res["restaurant_tables"]
             rest_data["status"] = res["status"]
             restaurant_data.append(rest_data)
@@ -276,7 +268,7 @@ def updateTable():
     result["success"] = 0
     if request.method == "POST":
         restaurant = restaurantCollection.find_one(
-            {"_id": ObjectId( request.form["restaurant_id"])})
+            {"_id": ObjectId(request.form["restaurant_id"])})
 
         if restaurant is None:
             result["success"] = 1
@@ -285,108 +277,110 @@ def updateTable():
 
         restaurant_tables = restaurant["restaurant_tables"]
         type = request.form["type"]
-        index = int(type.replace("_seater", ""))-1
+        index = int(type.replace("_seater", "")) - 1
         restaurant_tables[index]["total_table"] = request.form["total_table"]
         restaurant_tables[index]["available_table"] = request.form[
             "available_table"]
 
-        old_restaurant = {"_id": ObjectId( request.form["restaurant_id"])}
-        new_restaurant = {
-            "$set": {
-                "restaurant_tables": restaurant_tables
-            }
-        }
+        old_restaurant = {"_id": ObjectId(request.form["restaurant_id"])}
+        new_restaurant = {"$set": {"restaurant_tables": restaurant_tables}}
 
-        restaurantCollection.update_one(old_restaurant,new_restaurant)
+        restaurantCollection.update_one(old_restaurant, new_restaurant)
         result["success"] = 1
-        result["status"] = request.form["type"]+"_table_updated"
+        result["status"] = request.form["type"] + "_table_updated"
         return jsonify(result)
     return jsonify(result)
 
-@app.route("/book_table",methods=["GET","POST"])
+
+@app.route("/book_table", methods=["GET", "POST"])
 def bookTable():
-    result=dict()
-    result["success"]=0
-    if request.method=="POST":
+    result = dict()
+    result["success"] = 0
+    if request.method == "POST":
         order = {
-                "user_id": request.form["user_id"],
-                "restaurant_id": request.form["restaurant_id"],
-                "restaurant_name": request.form["restaurant_name"],
-                "booking_time": request.form["booking_time"],
-                "booking_date": request.form["booking_date"],
-                "table_type": request.form["table_type"],
-                "table_quantity": request.form["table_quantity"],
-                "status": request.form["status"],
-            }
+            "user_id": request.form["user_id"],
+            "restaurant_id": request.form["restaurant_id"],
+            "restaurant_name": request.form["restaurant_name"],
+            "booking_time": request.form["booking_time"],
+            "confirm_booking_time": "",
+            "booking_date": request.form["booking_date"],
+            "table_type": request.form["table_type"],
+            "table_quantity": request.form["table_quantity"],
+            "status": request.form["status"],
+        }
 
-        booking_id=bookingCollection.insert_one(order)
+        booking_id = bookingCollection.insert_one(order)
 
-       
-        order_data=dict()
-        order_data["booking_id"]=str(booking_id.inserted_id)
-        order_data["status"]=request.form["status"]
+        order_data = dict()
+        order_data["booking_id"] = str(booking_id.inserted_id)
+        order_data["status"] = request.form["status"]
 
         result["success"] = 1
-        result["order_data"] =order_data
+        result["order_data"] = order_data
         return jsonify(result)
     return jsonify(result)
 
 
-@app.route("/update_book_table",methods=["GET","POST"])
+@app.route("/update_book_table", methods=["GET", "POST"])
 def updateBookTable():
-    result=dict()
-    result["success"]=0
-    if request.method=="POST":
-        order=bookingCollection.find_one({"_id":ObjectId(request.form["booking_id"])})
+    result = dict()
+    result["success"] = 0
+    if request.method == "POST":
+        order = bookingCollection.find_one(
+            {"_id": ObjectId(request.form["booking_id"])})
         if order is None:
-            result["success"]=1
-            result["status"]="not_available_booking"
+            result["success"] = 1
+            result["status"] = "not_available_booking"
             return jsonify(result)
-        old_order = {"_id": ObjectId( request.form["booking_id"])}
-        new_order = {
-            "$set": {
-                "status": request.form["status"]
-            }
-        }
-        bookingCollection.update_one(old_order,new_order)
+        old_order = {"_id": ObjectId(request.form["booking_id"])}
+        new_order = {"$set": {"status": request.form["status"],
+                            "confirm_booking_time":request.form["confirm_booking_time"]}}
+        bookingCollection.update_one(old_order, new_order)
 
         result["success"] = 1
         result["status"] = "updated_book_table_successfully"
     return jsonify(result)
 
-@app.route("/get_booking_history",methods=["GET","POST"])
-def getBookingHistory():
-    result=dict()
-    result["success"]=0
-    if request.method=="GET":
-        booking_data=None
-        if request.form["by_user"]=="True":
-            booking_data=bookingCollection.find({"user_id":request.form["user_id"]})
-        else:
-            booking_data=bookingCollection.find({"restaurant_id":request.form["restaurant_id"]})
 
-        result["success"]=1
-        booking_data_list=[]
+@app.route("/get_booking_history", methods=["GET", "POST"])
+def getBookingHistory():
+    result = dict()
+    result["success"] = 0
+    if request.method == "GET":
+        booking_data = None
+        if request.form["by_user"] == "True":
+            booking_data = bookingCollection.find(
+                {"user_id": request.form["user_id"]})
+        else:
+            booking_data = bookingCollection.find(
+                {"restaurant_id": request.form["restaurant_id"]})
+
+        result["success"] = 1
+        booking_data_list = []
         if booking_data is None:
-            result["status"]="no_booking_history"
+            result[
+                "status"] = "                                                  "
             return jsonify(result)
 
         for book_data in booking_data:
-            booking=dict()
-            booking["booking_id"]=str(book_data["_id"])
-            booking["user_id"]=book_data["user_id"]
-            booking["restaurant_id"]=book_data["restaurant_id"]
-            booking["restaurant_name"]=book_data["restaurant_name"]
-            booking["booking_time"]=book_data["booking_time"]
-            booking["booking_date"]=book_data["booking_date"]
-            booking["table_type"]=book_data["table_type"]
-            booking["table_quantity"]=book_data["table_quantity"]
-            booking["status"]=book_data["status"]
+            booking = dict()
+            booking["booking_id"] = str(book_data["_id"])
+            booking["user_id"] = book_data["user_id"]
+            booking["restaurant_id"] = book_data["restaurant_id"]
+            booking["restaurant_name"] = book_data["restaurant_name"]
+            booking["booking_time"] = book_data["booking_time"]
+            booking["confirm_booking_time"] = book_data["confirm_booking_time"]
+            booking["booking_date"] = book_data["booking_date"]
+            booking["table_type"] = book_data["table_type"]
+            booking["table_quantity"] = book_data["table_quantity"]
+            booking["status"] = book_data["status"]
             booking_data_list.append(booking)
 
-        result["booking_data"]=booking_data_list
-        return jsonify(result)    
+        result["booking_data"] = booking_data_list
+        return jsonify(result)
     return jsonify(result)
+
+
 def getDefaultRestaurantTable(restaurant_tables):
     restaurant_tables.clear()
     for i in range(9):
@@ -453,7 +447,6 @@ def checkPicsAndReUploads(request, restaurant_pics):
                 restaurant_pics.append(rest_pic_file_name)
 
     return restaurant_pics
-
 
 
 if __name__ == "__main__":
