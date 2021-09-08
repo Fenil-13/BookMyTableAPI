@@ -141,15 +141,15 @@ Instant restaurant reservation at your favorite restaurants across several citie
   }
 ```
 
-#### Get Restaurant Profile of user
+#### Get Restaurant Profile By User or All
 
 ```http
   GET /get_restaurants
 ```
 
-| Parameter | Type     |
-| :-------- | :------- |
-| `user_id` | `string` |
+| Parameter | Type     ||
+| :-------- | :------- ||
+| `user_id` | `string` |optional|
 
 #### Response
 

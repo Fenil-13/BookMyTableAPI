@@ -36,70 +36,98 @@ restaurantCollection = db.Restaurant
 bookingCollection = db.Booking
 
 
+# 7573056506
+# Fenil@123fm
+
+# 9909556506
+# Mihir@123
+
+@app.route("/upload_pic",methods=["GET","POST"])
+def uploadPic():
+    result = dict()
+    try:
+        picture_file=request.files["picture_file"]
+        picture_file_name=secure_filename(request.form["user_auth_id"]
+        +"_"+request.form["picture_type"]+"_"+picture_file.filename)
+        picture_file.save(
+                    os.path.join(app.config[f'{request.form["picture_type"]}_upload_location'],
+                                picture_file_name))
+        result["success"] = 1                        
+        result["picture_filename"] =picture_file_name
+        return jsonify(result) 
+    except:
+        result["success"] = 0
+        result["picture_filename"] ="Not Saved"
+        return jsonify(result)
+
+
+
 @app.route("/sign_up_user", methods=["GET", "POST"])
 def signupUser():
     result = dict()
     result["success"] = 0
     if request.method == "POST":
+
+        data=json.loads(request.data.decode('utf8'))
+
         # Check User exits or Not By Phone Number
         user = userCollection.find_one(
-            {"user_phone_number": request.form["user_phone_number"]})
+            {"user_phone_number": data["user_phone_number"]})
         if user:
             result["success"] = 1
             result["status"] = "user_available"
+            return jsonify(result)
         else:
-            # Save Profile Pic in folder and save file name in Db
-            profile_pic = request.files["user_profile_pic"]
-            profile_pic_file_name = secure_filename(
-                request.form["user_auth_id"] + "_profile_pic_" +
-                profile_pic.filename)
-            profile_pic.save(
-                os.path.join(app.config["profile_pic_upload_location"],
-                             profile_pic_file_name))
-            text_password = request.form["user_password"]
+            text_password = data["user_password"]
             hashed_password = bcrypt.hashpw(text_password.encode('utf-8'),
                                             bcrypt.gensalt())
             user = {
-                "user_auth_id": request.form["user_auth_id"],
-                "user_name": request.form["user_name"],
-                "user_phone_number": request.form["user_phone_number"],
-                "user_email": request.form["user_email"],
+                "user_auth_id": data["user_auth_id"],
+                "user_name": data["user_name"],
+                "user_phone_number": data["user_phone_number"],
+                "user_email": data["user_email"],
                 "user_password": hashed_password,
-                "user_profile_pic": profile_pic_file_name,
-                "user_device_token": request.form["user_device_token"],
-                "user_location": request.form["user_location"],
+                "user_profile_pic": "",
+                "user_device_token": data["user_device_token"],
+                "user_location": data["user_location"],
             }
 
             userCollection.insert_one(user)
 
             result["success"] = 1
             result["status"] = "user_created"
-
+            return jsonify(result)
     return jsonify(result)
-
 
 @app.route("/login_user", methods=["GET", "POST"])
 def loginUser():
     result = dict()
     result["success"] = 0
     if request.method == "GET":
+       
         # Check User exits or Not By Phone Number and password
+
         user = userCollection.find_one(
-            {"user_phone_number": request.form["user_phone_number"]})
+            {"user_phone_number":  request.args.get("user_phone_number")})
+
         if user is None:
             result["success"] = 1
             result["user_status"] = "user_not_available"
+
         else:
-            text_password = request.form["user_password"]
-            if bcrypt.checkpw(text_password.encode('utf-8'),
-                              user["user_password"]):
+            text_password =  request.args.get("user_password")
+        
+            if bcrypt.checkpw((text_password).encode('utf-8'),
+                              (user["user_password"].decode('utf8')).encode('utf-8')):
                 result["success"] = 1
+                result["user_status"] = "user_available"
                 user_data = dict()
                 user_data["user_id"] = str(user.get("_id"))
                 user_data["user_name"] = user["user_name"]
                 user_data["user_auth_id"] = user["user_auth_id"]
                 user_data["user_email"] = user["user_email"]
                 user_data["user_phone_number"] = user["user_phone_number"]
+                user_data["user_device_token"]=user["user_device_token"]
                 user_data["user_profile_pic"] = params[
                     "image_path"] + "profile_pic/" + user["user_profile_pic"]
                 user_data["user_location"] = user["user_location"]
@@ -107,6 +135,7 @@ def loginUser():
             else:
                 result["success"] = 1
                 result["user_status"] = "invalid_credentials"
+    
     return jsonify(result)
 
 
@@ -116,42 +145,33 @@ def updateUser():
     result["success"] = 0
 
     if request.method == "POST":
+        data=json.loads(request.data.decode('utf8'))
+        
+        #Get user from user_id
+
         user = userCollection.find_one(
-            {"_id": ObjectId(request.form["user_id"])})
+            {"_id": ObjectId(data["user_id"])})
 
         if user is None:
             result["success"] = 1
             result["status"] = "user_not_available"
         else:
-            profile_pic_file_name = user["user_profile_pic"]
+           
+            old_user = {"_id": ObjectId(data["user_id"])}
 
-            # if any Change in Profile Pic then upload and change file name
-            if request.form["profile_pic_updated"] == "true":
-
-                #First Remove exits file so server keep clean
-                os.remove(app.config["profile_pic_upload_location"] +
-                          user["user_profile_pic"])
-
-                #Now Upload New File
-                profile_pic = request.files["user_profile_pic"]
-                profile_pic_file_name = secure_filename(
-                    request.form["user_auth_id"] + "_profile_pic_" +
-                    profile_pic.filename)
-                profile_pic.save(
-                    os.path.join(app.config["upload_location"],
-                                 profile_pic_file_name))
-
-            old_user = {"_id": ObjectId(request.form["user_id"])}
+            hashed_password = bcrypt.hashpw(data["user_password"].encode('utf-8'),
+                                            bcrypt.gensalt())
+                                            
             updated_user = {
                 "$set": {
-                    "user_auth_id": request.form["user_auth_id"],
-                    "user_name": request.form["user_name"],
-                    "user_phone_number": request.form["user_phone_number"],
-                    "user_email": request.form["user_email"],
-                    "user_password": request.form["user_password"],
-                    "user_profile_pic": profile_pic_file_name,
-                    "user_device_token": request.form["user_device_token"],
-                    "user_location": request.form["user_location"],
+                    "user_auth_id": data["user_auth_id"],
+                    "user_name": data["user_name"],
+                    "user_phone_number": data["user_phone_number"],
+                    "user_email": data["user_email"],
+                    "user_password": hashed_password,
+                    "user_profile_pic": user["user_profile_pic"],
+                    "user_device_token": data["user_device_token"],
+                    "user_location": data["user_location"],
                 }
             }
 
@@ -166,21 +186,21 @@ def createRestaurant():
     result = dict()
     result["success"] = 0
     if request.method == "POST":
-
+        data=json.loads(request.data.decode('utf8'))
         restaurant_tables = []
         restaurant_tables = getDefaultRestaurantTable(restaurant_tables)
 
         restaurant = {
-            "user_id": request.form["user_id"],
-            "restaurant_name": request.form["restaurant_name"],
+            "user_id": data["user_id"],
+            "restaurant_name": data["restaurant_name"],
             "restaurant_pics": [],
-            "restaurant_short_desc": request.form["restaurant_short_desc"],
-            "restaurant_long_desc": request.form["restaurant_long_desc"],
-            "restaurant_opening_time": request.form["restaurant_opening_time"],
-            "restaurant_closing_time": request.form["restaurant_closing_time"],
+            "restaurant_short_desc": data["restaurant_short_desc"],
+            "restaurant_long_desc": data["restaurant_long_desc"],
+            "restaurant_opening_time": data["restaurant_opening_time"],
+            "restaurant_closing_time": data["restaurant_closing_time"],
             "restaurant_contact_number":
-            request.form["restaurant_contact_number"],
-            "restaurant_location": request.form["restaurant_location"],
+            data["restaurant_contact_number"],
+            "restaurant_location": data["restaurant_location"],
             "status": "Pending",
             "restaurant_tables": restaurant_tables
         }
@@ -189,7 +209,7 @@ def createRestaurant():
 
         result["success"] = 1
         result["status"] = "restaurant_created"
-
+    result["status"] = "Not Authorized"
     return jsonify(result)
 
 
@@ -198,17 +218,24 @@ def getRestaurant():
     result = dict()
     result["success"] = 0
     if request.method == "GET":
-        restaurant = restaurantCollection.find(
+        restaurant=None
+        if "user_id" in request.form:
+            restaurant = restaurantCollection.find(
             {"user_id": request.form["user_id"]})
+        else:
+            restaurant = restaurantCollection.find()
+           
         if restaurant is None:
             result["success"] = 1
             result["status"] = "restaurant_not_available"
             return jsonify(result)
+
         result["success"] = 1
         restaurant_data = []
         for res in restaurant:
             restaurant_pics = res["restaurant_pics"]
             restaurant_pics = appendUrl(restaurant_pics)
+
             rest_data = dict()
             rest_data["user_id"] = res["user_id"]
             rest_data["restaurant_name"] = res["restaurant_name"]
@@ -225,6 +252,7 @@ def getRestaurant():
             rest_data["restaurant_location"] = res["restaurant_location"]
             rest_data["restaurant_tables"] = res["restaurant_tables"]
             rest_data["status"] = res["status"]
+
             restaurant_data.append(rest_data)
 
         result["restaurant_data"] = restaurant_data
@@ -400,8 +428,6 @@ def appendUrl(restaurant_pics):
 
 
 def checkPicsAndUploads(request, restaurant_pics):
-    rest_pic = request.files["upload_0"]
-
     for i in range(6):
         param = "upload_" + str(i)
         if (param in request.files):
@@ -450,4 +476,4 @@ def checkPicsAndReUploads(request, restaurant_pics):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0',debug=True)
