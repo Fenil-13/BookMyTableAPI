@@ -10,7 +10,7 @@ import certifi
 
 with open("config.json", "r+") as c:
     params = json.load(c)["params"]
-
+    #krupal
 if params["local_server"] == "True":
     local_server = True
 else:
