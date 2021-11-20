@@ -10,7 +10,7 @@ import certifi
 
 with open("config.json", "r+") as c:
     params = json.load(c)["params"]
-
+    #testing
 if params["local_server"] == "True":
     local_server = True
 else:
@@ -34,6 +34,7 @@ db = client.BookMyTable
 userCollection = db.Users
 restaurantCollection = db.Restaurant
 bookingCollection = db.Booking
+print(restaurantCollection.find_one({"_id":ObjectId("613b42eed6c94e39135298e8")}))
 
 
 # 7573056506
