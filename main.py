@@ -182,12 +182,10 @@ def fetchUser():
     result["success"] = 0
     query = userCollection.find()
     userList = list()
-    i = 0
     for x in query:
         x["_id"] = str(x["_id"])
         x.pop("user_password")
         userList.append(x)
-        i += 1
     result["userList"] = userList
     result["success"] = 1
     return jsonify(result)
@@ -232,9 +230,9 @@ def fetchAllRestaurant():
         x["_id"] = str(x["_id"])
         user = userCollection.find_one(
             {"_id": ObjectId(x["user_id"])})
-        x["user_name"]=user["user_name"]
-        x["user_profile_pic"]=user["user_profile_pic"]
-        x["user_email"]=user["user_email"]
+        x["user_name"] = user["user_name"]
+        x["user_profile_pic"] = user["user_profile_pic"]
+        x["user_email"] = user["user_email"]
         restaurantList.append(x)
     result["success"] = 1
     result["restaurantList"] = restaurantList
@@ -269,13 +267,13 @@ def addTables():
 
 
 # User Refereance
-@app.route("/get_table_by_type", methods=["GET","POST"])
+@app.route("/get_table_by_type", methods=["GET", "POST"])
 def getTables():
     result = dict()
     result["success"] = 0
     data = json.loads(request.data.decode('utf8'))
 
-    restaurant_id =data["restaurant_id"]
+    restaurant_id = data["restaurant_id"]
     table_type = data["table_type"]
     table = tableCollection.find_one(
         {"restaurant_id": restaurant_id, "table_type": table_type})
@@ -289,7 +287,7 @@ def getTables():
                 time_slot.append(x)
         result["time_slot"] = time_slot
         result["status"] = "table_available"
-    
+
         return jsonify(result)
     else:
         result["success"] = 1
@@ -304,11 +302,26 @@ def bookTable():
     result = dict()
     result["success"] = 0
     table_id = request.form["table_id"]
+    table_type = request.form["table_type"]
     time_slot = request.form["time_slot"]
+    user_id = request.form["user_id"]
+    user_name = request.form["user_name"]
+    restaurant_id = request.form["restaurant_id"]
+    restaurant_name = request.form["restaurant_name"]
     query = {"_id": ObjectId(table_id), "time_slot.time": time_slot}
     update = {"$inc": {"time_slot.$.available_table": -1}}
     tableCollection.update_one(query, update)
     # update booking collection
+    booking = {
+        "user_id": user_id,
+        "user_name": user_name,
+        "restaurant_id": restaurant_id,
+        "restaurant_name": restaurant_name,
+        "table_id": table_id,
+        "table_type": table_type,
+        "time_slot": time_slot
+    }
+    bookingCollection.insert(booking)
 
     result["success"] = 1
     return jsonify(result)
@@ -318,7 +331,18 @@ def bookTable():
 def bookingHistory():
     result = dict()
     result["success"] = 0
-
+    user_id = request.form["user_id"]
+    query = bookingCollection.find({"user_id": user_id})
+    bookingList = list()
+    if query.count() == 0:
+        result["booking_count"] = 0
+    else:
+        result["booking_count"] = query.count()
+        for x in query:
+            x["_id"] = str(x["_id"])
+            bookingList.append(x)
+    result["success"] = 1
+    result["bookingList"] = bookingList
     return jsonify(result)
 
 
