@@ -186,6 +186,7 @@ def updateUser():
 def createRestaurant():
     result = dict()
     result["success"] = 0
+    result["status"] = "Not Authorized"
     if request.method == "POST":
         data=json.loads(request.data.decode('utf8'))
         restaurant_tables = []
@@ -207,10 +208,9 @@ def createRestaurant():
         }
 
         restaurantCollection.insert_one(restaurant)
-
         result["success"] = 1
         result["status"] = "restaurant_created"
-    result["status"] = "Not Authorized"
+        return jsonify(result)
     return jsonify(result)
 
 
@@ -220,11 +220,13 @@ def getRestaurant():
     result["success"] = 0
     if request.method == "GET":
         restaurant=None
-        if "user_id" in request.form:
-            restaurant = restaurantCollection.find(
-            {"user_id": request.form["user_id"]})
-        else:
+        user_id=request.args.get("user_id")
+
+        if user_id == "":
             restaurant = restaurantCollection.find()
+        else:
+            restaurant = restaurantCollection.find(
+            {"user_id": request.args.get("user_id")})
            
         if restaurant is None:
             result["success"] = 1

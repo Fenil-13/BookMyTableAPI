@@ -53,24 +53,24 @@ def signupUser():
             result["status"] = "user_already_available"
             return jsonify(result)
         else:
-            text_password = data["user_password"]
-            hashed_password = bcrypt.hashpw(text_password.encode('utf-8'),
-                                            bcrypt.gensalt())
+            # text_password = data["user_password"]
+            # hashed_password = bcrypt.hashpw(text_password.encode('utf-8'),
+            #                                 bcrypt.gensalt())
             user = {
                 "user_auth_id": data["user_auth_id"],
                 "user_name": data["user_name"],
                 "user_phone_number": data["user_phone_number"],
                 "user_email": data["user_email"],
-                "user_password": hashed_password,
                 "user_profile_pic": "",
                 "user_device_token": data["user_device_token"],
                 "user_location": data["user_location"],
             }
 
-            userCollection.insert_one(user)
+            response=userCollection.insert_one(user)
 
             result["success"] = 1
             result["status"] = "user_created"
+            result["id"] = str(response.inserted_id)
             return jsonify(result)
     return jsonify(result)
 
@@ -80,21 +80,18 @@ def loginUser():
     result = dict()
     result["success"] = 0
     if request.method == "POST":
-
         # Check User exits or Not By Phone Number and password
         data = json.loads(request.data.decode('utf8'))
         user = userCollection.find_one(
             {"user_phone_number":  data["user_phone_number"]})
-
+    
         if user is None:
             result["success"] = 1
             result["user_status"] = "user_not_available"
 
         else:
-            text_password = data["user_password"]
 
-            if bcrypt.checkpw((text_password).encode('utf-8'),
-                              (user["user_password"])):
+            if data["user_auth_id"] == user["user_auth_id"]:
                 result["success"] = 1
                 result["user_status"] = "user_available"
                 user_data = dict()
@@ -220,14 +217,15 @@ def createRestaurant():
 
         result["success"] = 1
         result["status"] = "restaurant_created"
+        return jsonify(result)
     result["status"] = "technical_error"
     return jsonify(result)
 
 
-@app.route("/fetch_restaurant")
-def fetchRestaurant():
+@app.route("/fetch_all_restaurant")
+def fetchAllRestaurant():
     result = dict()
-    result["success"] = 0
+    result["success"] = 1
     query = restaurantCollection.find()
     restaurantList = list()
     for x in query:
@@ -235,6 +233,8 @@ def fetchRestaurant():
         restaurantList.append(x)
     result["restaurantList"] = restaurantList
     return jsonify(result)
+
+
 
 
 @app.route("/add_tables", methods=["GET"])
@@ -245,11 +245,13 @@ def addTables():
     table_type = request.form["table_type"]
     table_count = int(request.form["table_count"])
     time_slot = list()
+
     for i in range(8, 23):
         temp = dict()
         temp["available_table"] = table_count
         temp["time"] = f"{i}:00 - {i+1}:00"
         time_slot.append(temp)
+
     table = {
         "restaurant_id": restaurant_id,
         "table_type": table_type,
@@ -262,6 +264,8 @@ def addTables():
     return jsonify(result)
 
 
+
+# User Refereance
 @app.route("/get_tables", methods=["GET"])
 def getTables():
     result = dict()
@@ -315,4 +319,4 @@ def cancelBooking():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host="0.0.0.0",debug=True)
