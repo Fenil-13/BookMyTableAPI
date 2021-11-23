@@ -306,7 +306,7 @@ def bookingHistory():
     return jsonify(result)
 
 
-@app.route("cancel_booking")
+@app.route("/cancel_booking")
 def cancelBooking():
     result = dict()
     result["success"] = 0
