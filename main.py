@@ -289,6 +289,7 @@ def getTables():
                 time_slot.append(x)
         result["time_slot"] = time_slot
         result["status"] = "table_available"
+    
         return jsonify(result)
     else:
         result["success"] = 1
