@@ -271,6 +271,7 @@ def addTables():
 def getTables():
     result = dict()
     result["success"] = 0
+    print(request.data)
     data = json.loads(request.data.decode('utf8'))
 
     restaurant_id = data["restaurant_id"]
@@ -297,41 +298,52 @@ def getTables():
     return jsonify(result)
 
 
-@app.route("/book_table", methods=["GET"])
+@app.route("/book_table", methods=["GET","POST"])
 def bookTable():
     result = dict()
     result["success"] = 0
-    table_id = request.form["table_id"]
-    table_type = request.form["table_type"]
-    time_slot = request.form["time_slot"]
-    user_id = request.form["user_id"]
-    user_name = request.form["user_name"]
-    restaurant_id = request.form["restaurant_id"]
-    restaurant_name = request.form["restaurant_name"]
-    query = {"_id": ObjectId(table_id), "time_slot.time": time_slot}
-    update = {"$inc": {"time_slot.$.available_table": -1}}
-    tableCollection.update_one(query, update)
-    # update booking collection
-    booking = {
-        "user_id": user_id,
-        "user_name": user_name,
-        "restaurant_id": restaurant_id,
-        "restaurant_name": restaurant_name,
-        "table_id": table_id,
-        "table_type": table_type,
-        "time_slot": time_slot
-    }
-    bookingCollection.insert(booking)
+    try:
 
-    result["success"] = 1
+        data = json.loads(request.data.decode('utf8'))
+        table_id = data["table_id"]
+        table_type = data["table_type"]
+        time_slot =data["time_slot"]
+        user_id = data["user_id"]
+        user_name = data["user_name"]
+        booking_date = data["booking_date"]
+        restaurant_id = data["restaurant_id"]
+        restaurant_name = data["restaurant_name"]
+        query = {"_id": ObjectId(table_id), "time_slot.time": time_slot}
+        update = {"$inc": {"time_slot.$.available_table": -1}}
+        tableCollection.update_one(query, update)
+        # update booking collection
+        booking = {
+            "user_id": user_id,
+            "user_name": user_name,
+            "restaurant_id": restaurant_id,
+            "restaurant_name": restaurant_name,
+            "table_id": table_id,
+            "table_type": table_type,
+            "time_slot": time_slot,
+            "booking_date":booking_date
+        }
+        response=bookingCollection.insert_one(booking)
+
+        result["success"] = 1
+        result["status"] = "Booked"
+        result["booking_id"] =str(response.inserted_id)
+    except:
+        result["success"] = 1
+        result["status"] = "Not Booked"
     return jsonify(result)
 
 
-@app.route("/booking_history", methods=["GET"])
+@app.route("/booking_history", methods=["GET","POST"])
 def bookingHistory():
     result = dict()
     result["success"] = 0
-    user_id = request.form["user_id"]
+    data = json.loads(request.data.decode('utf8'))
+    user_id =data["user_id"]
     query = bookingCollection.find({"user_id": user_id})
     bookingList = list()
     if query.count() == 0:
@@ -354,12 +366,12 @@ def cancelBooking():
     return jsonify(result)
 
 
-@app.route("/admin_get_restaurants")
+@app.route("/admin_get_restaurants", methods=["GET","POST"])
 def adminGetRestaurants():
     result = dict()
     result["success"] = 0
-
-    user_id = request.form["user_id"]
+    data = json.loads(request.data.decode('utf8'))
+    user_id = data["user_id"]
     query = restaurantCollection.find({"user_id": user_id})
 
     if query.count() == 0:
@@ -376,13 +388,12 @@ def adminGetRestaurants():
 
     return jsonify(result)
 
-
 @app.route("/admin_get_tables")
 def adminGetTables():
     result = dict()
     result["success"] = 0
-
-    restaurant_id = request.form["restaurant_id"]
+    data = json.loads(request.data.decode('utf8'))
+    restaurant_id = data["restaurant_id"]
     query = tableCollection.find({"restaurant_id": restaurant_id})
     if query.count() == 0:
         result["success"] = 1
