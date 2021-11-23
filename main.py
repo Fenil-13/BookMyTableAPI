@@ -296,6 +296,7 @@ def bookTable():
     update = {"$inc": {"time_slot.$.available_table": -1}}
     tableCollection.update_one(query, update)
     # update booking collection
+
     result["success"] = 1
     return jsonify(result)
 
