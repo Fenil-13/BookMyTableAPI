@@ -66,7 +66,7 @@ def signupUser():
                 "user_location": data["user_location"],
             }
 
-            response=userCollection.insert_one(user)
+            response = userCollection.insert_one(user)
 
             result["success"] = 1
             result["status"] = "user_created"
@@ -84,7 +84,7 @@ def loginUser():
         data = json.loads(request.data.decode('utf8'))
         user = userCollection.find_one(
             {"user_phone_number":  data["user_phone_number"]})
-    
+
         if user is None:
             result["success"] = 1
             result["user_status"] = "user_not_available"
@@ -225,7 +225,7 @@ def createRestaurant():
 @app.route("/fetch_all_restaurant")
 def fetchAllRestaurant():
     result = dict()
-    result["success"] = 1
+    result["success"] = 0
     query = restaurantCollection.find()
     restaurantList = list()
     for x in query:
@@ -236,10 +236,9 @@ def fetchAllRestaurant():
         x["user_profile_pic"]=user["user_profile_pic"]
         x["user_email"]=user["user_email"]
         restaurantList.append(x)
+    result["success"] = 1
     result["restaurantList"] = restaurantList
     return jsonify(result)
-
-
 
 
 @app.route("/add_tables", methods=["GET"])
@@ -267,7 +266,6 @@ def addTables():
     result["success"] = 1
     result["status"] = "table_inserted"
     return jsonify(result)
-
 
 
 # User Refereance
@@ -330,5 +328,62 @@ def cancelBooking():
     return jsonify(result)
 
 
+@app.route("/admin_get_restaurants")
+def adminGetRestaurants():
+    result = dict()
+    result["success"] = 0
+
+    user_id = request.form["user_id"]
+    query = restaurantCollection.find({"user_id": user_id})
+
+    if query.count() == 0:
+        result["success"] = 1
+        result["restaurant_count"] = 0
+    else:
+        restaurantList = list()
+        for x in query:
+            x["_id"] = str(x["_id"])
+            restaurantList.append(x)
+        result["success"] = 1
+        result["restaurant_count"] = query.count()
+        result["restaurantList"] = restaurantList
+
+    return jsonify(result)
+
+
+@app.route("/admin_get_tables")
+def adminGetTables():
+    result = dict()
+    result["success"] = 0
+
+    restaurant_id = request.form["restaurant_id"]
+    query = tableCollection.find({"restaurant_id": restaurant_id})
+    if query.count() == 0:
+        result["success"] = 1
+        result["table_count"] = 0
+    else:
+        tableList = list()
+        for x in query:
+            x["_id"] = str(x["_id"])
+            tableList.append(x)
+        result["success"] = 1
+        result["table_count"] = query.count()
+        result["tableList"] = tableList
+
+    return jsonify(result)
+
+
+@app.route("/admin_remove_table")
+def adminRemoveTable():
+    result = dict()
+    result["success"] = 0
+
+    table_id = ObjectId(request.form["table_id"])
+    tableCollection.delete_one({"_id": table_id})
+    result["success"] = 1
+
+    return jsonify(result)
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0",debug=True)
+    app.run(host="0.0.0.0", debug=True)
