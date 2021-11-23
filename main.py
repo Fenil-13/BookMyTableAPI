@@ -327,7 +327,8 @@ def bookTable():
         "restaurant_name": restaurant_name,
         "table_id": table_id,
         "table_type": table_type,
-        "time_slot": time_slot
+        "time_slot": time_slot,
+        "status": "Panding"
     }
     bookingCollection.insert(booking)
 
@@ -341,16 +342,42 @@ def bookingHistory():
     result["success"] = 0
     user_id = request.form["user_id"]
     query = bookingCollection.find({"user_id": user_id})
-    bookingList = list()
+    currentBookingList = list()
+    completedBookingList = list()
     if query.count() == 0:
         result["booking_count"] = 0
     else:
         result["booking_count"] = query.count()
         for x in query:
             x["_id"] = str(x["_id"])
-            bookingList.append(x)
+            if x["status"] == "Panding":
+                currentBookingList.append(x)
+            else:
+                completedBookingList.append(x)
     result["success"] = 1
-    result["bookingList"] = bookingList
+    result["currentBookingList"] = currentBookingList
+    result["completedBookingList"] = completedBookingList
+    return jsonify(result)
+
+
+@app.route("/booking_list_by_restaurant_id")
+def bookingListByRestaurantId():
+    result = dict()
+    result["success"] = 0
+    restaurant_id = request.form["restaurant_id"]
+    query = bookingCollection.find(
+        {"restaurant_id": restaurant_id, "status": "Panding"})
+    bookingList = list()
+    if query.count() == 0:
+        result["booking_count"] = 0
+        result["success"] = 1
+    else:
+        for x in query:
+            x["_id"] = str(x["_id"])
+            bookingList.append(x)
+        result["booking_count"] = query.count()
+        result["success"] = 1
+        result["bookingList"] = bookingList
     return jsonify(result)
 
 
@@ -366,6 +393,23 @@ def cancelBooking():
     query = {"_id": ObjectId(table_id), "time_slot.time": time_slot}
     update = {"$inc": {"time_slot.$.available_table": 1}}
     tableCollection.update_one(query, update)
+    result["success"] = 1
+    return jsonify(result)
+
+
+@app.route("/order_completed")
+def orderCompleted():
+    result = dict()
+    result["success"] = 0
+    booking_id = request.form["booking_id"]
+    booking = bookingCollection.find_one({"_id": ObjectId(booking_id)})
+    table_id = booking["table_id"]
+    time_slot = booking["time_slot"]
+    query = {"_id": ObjectId(table_id), "time_slot.time": time_slot}
+    update = {"$inc": {"time_slot.$.available_table": 1}}
+    tableCollection.update_one(query, update)
+    bookingCollection.update_one({"_id": ObjectId(booking_id)}, {
+                                 "$set": {"status": "Completed"}})
     result["success"] = 1
     return jsonify(result)
 
