@@ -230,6 +230,11 @@ def fetchAllRestaurant():
     restaurantList = list()
     for x in query:
         x["_id"] = str(x["_id"])
+        user = userCollection.find_one(
+            {"_id": ObjectId(x["user_id"])})
+        x["user_name"]=user["user_name"]
+        x["user_profile_pic"]=user["user_profile_pic"]
+        x["user_email"]=user["user_email"]
         restaurantList.append(x)
     result["success"] = 1
     result["restaurantList"] = restaurantList
@@ -264,15 +269,18 @@ def addTables():
 
 
 # User Refereance
-@app.route("/get_tables", methods=["GET"])
+@app.route("/get_table_by_type", methods=["GET","POST"])
 def getTables():
     result = dict()
     result["success"] = 0
-    restaurant_id = request.form["restaurant_id"]
-    table_type = request.form["table_type"]
+    data = json.loads(request.data.decode('utf8'))
+
+    restaurant_id =data["restaurant_id"]
+    table_type = data["table_type"]
     table = tableCollection.find_one(
         {"restaurant_id": restaurant_id, "table_type": table_type})
     if table is not None:
+        result["success"] = 1
         result["table_id"] = str(table["_id"])
         temp = table["time_slot"]
         time_slot = list()
@@ -280,9 +288,14 @@ def getTables():
             if x["available_table"] > 0:
                 time_slot.append(x)
         result["time_slot"] = time_slot
+        result["status"] = "table_available"
+    
+        return jsonify(result)
     else:
+        result["success"] = 1
         result["status"] = "table_not_available"
-    result["success"] = 1
+        return jsonify(result)
+    result["status"] = "technical_error"
     return jsonify(result)
 
 
