@@ -66,10 +66,11 @@ def signupUser():
                 "user_location": data["user_location"],
             }
 
-            userCollection.insert_one(user)
+            response=userCollection.insert_one(user)
 
             result["success"] = 1
             result["status"] = "user_created"
+            result["id"] = str(response.inserted_id)
             return jsonify(result)
     return jsonify(result)
 
@@ -216,14 +217,15 @@ def createRestaurant():
 
         result["success"] = 1
         result["status"] = "restaurant_created"
+        return jsonify(result)
     result["status"] = "technical_error"
     return jsonify(result)
 
 
-@app.route("/fetch_restaurant")
-def fetchRestaurant():
+@app.route("/fetch_all_restaurant")
+def fetchAllRestaurant():
     result = dict()
-    result["success"] = 0
+    result["success"] = 1
     query = restaurantCollection.find()
     restaurantList = list()
     for x in query:
@@ -231,6 +233,8 @@ def fetchRestaurant():
         restaurantList.append(x)
     result["restaurantList"] = restaurantList
     return jsonify(result)
+
+
 
 
 @app.route("/add_tables", methods=["GET"])
@@ -241,11 +245,13 @@ def addTables():
     table_type = request.form["table_type"]
     table_count = int(request.form["table_count"])
     time_slot = list()
+
     for i in range(8, 23):
         temp = dict()
         temp["available_table"] = table_count
         temp["time"] = f"{i}:00 - {i+1}:00"
         time_slot.append(temp)
+
     table = {
         "restaurant_id": restaurant_id,
         "table_type": table_type,
@@ -258,6 +264,8 @@ def addTables():
     return jsonify(result)
 
 
+
+# User Refereance
 @app.route("/get_tables", methods=["GET"])
 def getTables():
     result = dict()
