@@ -177,7 +177,7 @@ def updateUser():
 
 
 @app.route("/fetch_users")
-def fetchUser():
+def fetchUsers():
     result = dict()
     result["success"] = 0
     query = userCollection.find()
@@ -191,32 +191,21 @@ def fetchUser():
     return jsonify(result)
 
 
-@app.route("/create_restaurant", methods=["GET", "POST"])
-def createRestaurant():
+@app.route("/fetch_user_by_id")
+def fetchUserById():
     result = dict()
     result["success"] = 0
-    if request.method == "POST":
-        data = json.loads(request.data.decode('utf8'))
 
-        restaurant = {
-            "user_id": data["user_id"],
-            "restaurant_name": data["restaurant_name"],
-            "restaurant_pics": [],
-            "restaurant_short_desc": data["restaurant_short_desc"],
-            "restaurant_long_desc": data["restaurant_long_desc"],
-            "restaurant_opening_time": data["restaurant_opening_time"],
-            "restaurant_closing_time": data["restaurant_closing_time"],
-            "restaurant_contact_number": data["restaurant_contact_number"],
-            "restaurant_location": data["restaurant_location"],
-            "status": "Pending",
-        }
+    user_id = request.form["user_id"]
+    user = userCollection.find_one({"_id": ObjectId(user_id)})
 
-        restaurantCollection.insert_one(restaurant)
-
-        result["success"] = 1
-        result["status"] = "restaurant_created"
-        return jsonify(result)
-    result["status"] = "technical_error"
+    if user is None:
+        result["status"] = "user not found"
+    else:
+        user["_id"] = str(user["_id"])
+        result["status"] = "user found"
+        result["user"] = user
+    result["success"] = 1
     return jsonify(result)
 
 
@@ -236,6 +225,25 @@ def fetchAllRestaurant():
         restaurantList.append(x)
     result["success"] = 1
     result["restaurantList"] = restaurantList
+    return jsonify(result)
+
+
+@app.route("/fetch_restaurant_by_id")
+def fetchRestaurantById():
+    result = dict()
+    result["success"] = 0
+
+    restaurant_id = request.form["restaurant_id"]
+    restaurant = restaurantCollection.find_one(
+        {"_id": ObjectId(restaurant_id)})
+
+    if restaurant is None:
+        result["status"] = "restaurant not found"
+    else:
+        restaurant["_id"] = str(restaurant["_id"])
+        result["status"] = "restaurant found"
+        result["restaurant"] = restaurant
+    result["success"] = 1
     return jsonify(result)
 
 
@@ -350,7 +358,73 @@ def bookingHistory():
 def cancelBooking():
     result = dict()
     result["success"] = 0
+    booking_id = request.form["booking_id"]
+    booking = bookingCollection.find_one({"_id": ObjectId(booking_id)})
+    table_id = booking["table_id"]
+    time_slot = booking["time_slot"]
+    bookingCollection.delete_one({"_id": ObjectId(booking_id)})
+    query = {"_id": ObjectId(table_id), "time_slot.time": time_slot}
+    update = {"$inc": {"time_slot.$.available_table": 1}}
+    tableCollection.update_one(query, update)
+    result["success"] = 1
+    return jsonify(result)
 
+
+@app.route("/create_restaurant", methods=["GET", "POST"])
+def createRestaurant():
+    result = dict()
+    result["success"] = 0
+    if request.method == "POST":
+        data = json.loads(request.data.decode('utf8'))
+
+        restaurant = {
+            "user_id": data["user_id"],
+            "restaurant_name": data["restaurant_name"],
+            "restaurant_pics": [],
+            "restaurant_short_desc": data["restaurant_short_desc"],
+            "restaurant_long_desc": data["restaurant_long_desc"],
+            "restaurant_opening_time": data["restaurant_opening_time"],
+            "restaurant_closing_time": data["restaurant_closing_time"],
+            "restaurant_contact_number": data["restaurant_contact_number"],
+            "restaurant_location": data["restaurant_location"],
+            "status": "Pending",
+        }
+
+        restaurantCollection.insert_one(restaurant)
+
+        result["success"] = 1
+        result["status"] = "restaurant_created"
+        return jsonify(result)
+    result["status"] = "technical_error"
+    return jsonify(result)
+
+
+@app.route("/update_restaurant")
+def updateRestaurant():
+    result = dict()
+    result["success"] = 0
+
+    restaurant_id = request.form["restaurant_id"]
+    query = restaurantCollection.find_one({"_id": ObjectId(restaurant_id)})
+    if query is None:
+        result["success"] = 1
+        result["status"] = "restaurant not found"
+    else:
+        restaurant = {
+            "$set": {
+                "restaurant_name": request.form["restaurant_name"],
+                "restaurant_short_desc": request.form["restaurant_short_desc"],
+                "restaurant_long_desc": request.form["restaurant_long_desc"],
+                "restaurant_opening_time": request.form["restaurant_opening_time"],
+                "restaurant_closing_time": request.form["restaurant_closing_time"],
+                "restaurant_contact_number": request.form["restaurant_contact_number"],
+                "restaurant_location": request.form["restaurant_location"],
+            }
+        }
+        restaurantCollection.update_one(
+            {"_id": ObjectId(restaurant_id)}, restaurant)
+        result["success"] = 1
+        result["status"] = "restaurant updated"
     return jsonify(result)
 
 
