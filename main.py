@@ -184,7 +184,7 @@ def fetchUsers():
     userList = list()
     for x in query:
         x["_id"] = str(x["_id"])
-        x.pop("user_password")
+        # x.pop("user_password")
         userList.append(x)
     result["userList"] = userList
     result["success"] = 1
@@ -370,24 +370,28 @@ def bookingHistory():
     return jsonify(result)
 
 
-@app.route("/booking_list_by_restaurant_id")
+@app.route("/booking_list_by_restaurant_id",methods=["GET","POST"])
 def bookingListByRestaurantId():
     result = dict()
     result["success"] = 0
-    restaurant_id = request.form["restaurant_id"]
+    data = json.loads(request.data.decode('utf8'))
+    restaurant_id = data["restaurant_id"]
     query = bookingCollection.find(
-        {"restaurant_id": restaurant_id, "status": "Panding"})
-    bookingList = list()
-    if query.count() == 0:
-        result["booking_count"] = 0
-        result["success"] = 1
-    else:
-        for x in query:
-            x["_id"] = str(x["_id"])
-            bookingList.append(x)
-        result["booking_count"] = query.count()
-        result["success"] = 1
-        result["bookingList"] = bookingList
+        {"restaurant_id": restaurant_id})
+    incompleteBookingList = list()
+    completedBookingList = list()
+
+    for x in query:
+        x["_id"] = str(x["_id"])
+        if x["status"] == "Panding":
+            incompleteBookingList.append(x)
+        if x["status"] == "Completed":
+            completedBookingList.append(x)
+
+    result["success"] = 1
+    result["incompleteBookingList"] = incompleteBookingList
+    print(completedBookingList)
+    result["completedBookingList"] = completedBookingList
     return jsonify(result)
 
 
@@ -482,8 +486,8 @@ def updateRestaurant():
     return jsonify(result)
 
 
-@app.route("/admin_get_restaurants", methods=["GET","POST"])
-def adminGetRestaurants():
+@app.route("/user_get_restaurants", methods=["GET","POST"])
+def userGetRestaurants():
     result = dict()
     result["success"] = 0
     data = json.loads(request.data.decode('utf8'))
@@ -504,8 +508,8 @@ def adminGetRestaurants():
 
     return jsonify(result)
 
-@app.route("/admin_get_tables")
-def adminGetTables():
+@app.route("/owner_get_restaurant_tables",methods=["GET","POST"])
+def ownerGetRestaurantTables():
     result = dict()
     result["success"] = 0
     data = json.loads(request.data.decode('utf8'))
