@@ -176,7 +176,7 @@ def updateUser():
     return jsonify(result)
 
 
-@app.route("/fetch_users")
+@app.route("/fetch_users", methods=["GET", "POST"])
 def fetchUsers():
     result = dict()
     result["success"] = 0
@@ -191,12 +191,12 @@ def fetchUsers():
     return jsonify(result)
 
 
-@app.route("/fetch_user_by_id")
+@app.route("/fetch_user_by_id", methods=["GET", "POST"])
 def fetchUserById():
     result = dict()
     result["success"] = 0
-
-    user_id = request.form["user_id"]
+    data = json.loads(request.data.decode('utf8'))
+    user_id = data["user_id"]
     user = userCollection.find_one({"_id": ObjectId(user_id)})
 
     if user is None:
@@ -209,7 +209,7 @@ def fetchUserById():
     return jsonify(result)
 
 
-@app.route("/fetch_all_restaurant")
+@app.route("/fetch_all_restaurant", methods=["GET", "POST"])
 def fetchAllRestaurant():
     result = dict()
     result["success"] = 0
@@ -228,12 +228,12 @@ def fetchAllRestaurant():
     return jsonify(result)
 
 
-@app.route("/fetch_restaurant_by_id")
+@app.route("/fetch_restaurant_by_id", methods=["GET", "POST"])
 def fetchRestaurantById():
     result = dict()
     result["success"] = 0
-
-    restaurant_id = request.form["restaurant_id"]
+    data = json.loads(request.data.decode('utf8'))
+    restaurant_id = data["restaurant_id"]
     restaurant = restaurantCollection.find_one(
         {"_id": ObjectId(restaurant_id)})
 
@@ -396,11 +396,12 @@ def bookingListByRestaurantId():
     return jsonify(result)
 
 
-@app.route("/cancel_booking")
+@app.route("/cancel_booking", methods=["GET", "POST"])
 def cancelBooking():
     result = dict()
     result["success"] = 0
-    booking_id = request.form["booking_id"]
+    data = json.loads(request.data.decode('utf8'))
+    booking_id = data["booking_id"]
     booking = bookingCollection.find_one({"_id": ObjectId(booking_id)})
     table_id = booking["table_id"]
     time_slot = booking["time_slot"]
@@ -459,12 +460,12 @@ def createRestaurant():
     return jsonify(result)
 
 
-@app.route("/update_restaurant")
+@app.route("/update_restaurant", methods=["GET", "POST"])
 def updateRestaurant():
     result = dict()
     result["success"] = 0
-
-    restaurant_id = request.form["restaurant_id"]
+    data = json.loads(request.data.decode('utf8'))
+    restaurant_id = data["restaurant_id"]
     query = restaurantCollection.find_one({"_id": ObjectId(restaurant_id)})
     if query is None:
         result["success"] = 1
@@ -472,13 +473,13 @@ def updateRestaurant():
     else:
         restaurant = {
             "$set": {
-                "restaurant_name": request.form["restaurant_name"],
-                "restaurant_short_desc": request.form["restaurant_short_desc"],
-                "restaurant_long_desc": request.form["restaurant_long_desc"],
-                "restaurant_opening_time": request.form["restaurant_opening_time"],
-                "restaurant_closing_time": request.form["restaurant_closing_time"],
-                "restaurant_contact_number": request.form["restaurant_contact_number"],
-                "restaurant_location": request.form["restaurant_location"],
+                "restaurant_name": data["restaurant_name"],
+                "restaurant_short_desc": data["restaurant_short_desc"],
+                "restaurant_long_desc": data["restaurant_long_desc"],
+                "restaurant_opening_time": data["restaurant_opening_time"],
+                "restaurant_closing_time": data["restaurant_closing_time"],
+                "restaurant_contact_number": data["restaurant_contact_number"],
+                "restaurant_location": data["restaurant_location"],
             }
         }
         restaurantCollection.update_one(
@@ -532,12 +533,12 @@ def ownerGetRestaurantTables():
     return jsonify(result)
 
 
-@app.route("/admin_remove_table")
+@app.route("/admin_remove_table", methods=["GET", "POST"])
 def adminRemoveTable():
     result = dict()
     result["success"] = 0
-
-    table_id = ObjectId(request.form["table_id"])
+    data = json.loads(request.data.decode('utf8'))
+    table_id = ObjectId(data["table_id"])
     tableCollection.delete_one({"_id": table_id})
     result["success"] = 1
 
