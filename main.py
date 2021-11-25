@@ -247,13 +247,14 @@ def fetchRestaurantById():
     return jsonify(result)
 
 
-@app.route("/add_tables", methods=["GET"])
+@app.route("/add_tables", methods=["GET", "POST"])
 def addTables():
     result = dict()
     result["success"] = 0
-    restaurant_id = request.form["restaurant_id"]
-    table_type = request.form["table_type"]
-    table_count = int(request.form["table_count"])
+    data = json.loads(request.data.decode('utf8'))
+    restaurant_id = data["restaurant_id"]
+    table_type = data["table_type"]
+    table_count = int(data["table_count"])
     time_slot = list()
 
     for i in range(8, 23):
@@ -411,11 +412,12 @@ def cancelBooking():
     return jsonify(result)
 
 
-@app.route("/order_completed")
+@app.route("/order_completed",methods=["GET","POST"])
 def orderCompleted():
     result = dict()
     result["success"] = 0
-    booking_id = request.form["booking_id"]
+    data = json.loads(request.data.decode('utf8'))
+    booking_id = data["booking_id"]
     booking = bookingCollection.find_one({"_id": ObjectId(booking_id)})
     table_id = booking["table_id"]
     time_slot = booking["time_slot"]
