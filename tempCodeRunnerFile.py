@@ -1,0 +1,1 @@
+restaurant_short_desc

@@ -90,7 +90,6 @@ def loginUser():
             result["user_status"] = "user_not_available"
 
         else:
-
             if data["user_auth_id"] == user["user_auth_id"]:
                 result["success"] = 1
                 result["user_status"] = "user_available"
@@ -101,8 +100,7 @@ def loginUser():
                 user_data["user_email"] = user["user_email"]
                 user_data["user_phone_number"] = user["user_phone_number"]
                 user_data["user_device_token"] = user["user_device_token"]
-                user_data["user_profile_pic"] = params[
-                    "image_path"] + "profile_pic/" + user["user_profile_pic"]
+                user_data["user_profile_pic"] = "http://192.168.0.106:5000/static/profile_pic/"+str(user.get("_id"))+"_profile_pic_"+user["user_profile_pic"]
                 user_data["user_location"] = user["user_location"]
                 result["user_data"] = user_data
             else:
@@ -116,14 +114,23 @@ def loginUser():
 def uploadPic():
     result = dict()
     try:
+        user = userCollection.find_one(
+            {"_id": ObjectId(request.form["user_id"])})
+        try:
+            if user["user_profile_pic"] != "":
+                os.remove(app.config[f'{request.form["picture_type"]}_upload_location']+request.form["user_id"]
+                            + "_"+request.form["picture_type"]+"_"+user["user_profile_pic"]) 
+        except:
+            print("Old file Not deleted")  
         picture_file = request.files["picture_file"]
-        picture_file_name = secure_filename(request.form["user_auth_id"]
+
+        picture_file_name = secure_filename(request.form["user_id"]
                                             + "_"+request.form["picture_type"]+"_"+picture_file.filename)
         picture_file.save(
             os.path.join(app.config[f'{request.form["picture_type"]}_upload_location'],
                          picture_file_name))
-        query = {"user_auth_id": request.form["user_auth_id"]}
-        update = {"$set": {"user_profile_pic": picture_file_name}}
+        query = {"user_auth_id": user["user_auth_id"]}
+        update = {"$set": {"user_profile_pic": picture_file.filename}}
         userCollection.update_one(query, update)
         result["success"] = 1
         result["picture_filename"] = picture_file_name
@@ -142,37 +149,36 @@ def updateUser():
     if request.method == "POST":
         data = json.loads(request.data.decode('utf8'))
 
-        # Get user from user_id
+        try:
+            print(data["user_id"])
+            user = userCollection.find_one(
+                {"_id": ObjectId(data["user_id"])})
 
-        user = userCollection.find_one(
-            {"_id": ObjectId(data["user_id"])})
-
-        if user is None:
-            result["success"] = 1
-            result["status"] = "user_not_available"
-        else:
-
-            old_user = {"_id": ObjectId(data["user_id"])}
-
-            hashed_password = bcrypt.hashpw(data["user_password"].encode('utf-8'),
-                                            bcrypt.gensalt())
-
-            updated_user = {
-                "$set": {
-                    "user_auth_id": data["user_auth_id"],
-                    "user_name": data["user_name"],
-                    "user_phone_number": data["user_phone_number"],
-                    "user_email": data["user_email"],
-                    "user_password": hashed_password,
-                    "user_profile_pic": user["user_profile_pic"],
-                    "user_device_token": data["user_device_token"],
-                    "user_location": data["user_location"],
+            if user is None:
+                result["success"] = 1
+                result["status"] = "user_not_available"
+            else:
+                old_user = {"_id": ObjectId(data["user_id"])}
+                updated_user = {
+                    "$set": {
+                        "user_auth_id": data["user_auth_id"],
+                        "user_name": data["user_name"],
+                        "user_phone_number": data["user_phone_number"],
+                        "user_email": data["user_email"],
+                        "user_profile_pic": user["user_profile_pic"],
+                        "user_device_token": data["user_device_token"],
+                        "user_location": data["user_location"],
+                    }
                 }
-            }
 
-            userCollection.update_one(old_user, updated_user)
+                userCollection.update_one(old_user, updated_user)
+                result["success"] = 1
+                result["status"] = "user_updated"
+        except:
             result["success"] = 1
-            result["status"] = "user_updated"
+            result["status"] = "user_not_updated"
+       
+        
     return jsonify(result)
 
 
@@ -185,6 +191,8 @@ def fetchUsers():
     for x in query:
         x["_id"] = str(x["_id"])
         # x.pop("user_password")
+        if x["user_profile_pic"]!="":
+            x["user_profile_pic"] = "http://192.168.0.106:5000/static/profile_pic/"+x["_id"]+"_profile_pic_"+x["user_profile_pic"]
         userList.append(x)
     result["userList"] = userList
     result["success"] = 1
@@ -196,16 +204,22 @@ def fetchUserById():
     result = dict()
     result["success"] = 0
     data = json.loads(request.data.decode('utf8'))
-    user_id = data["user_id"]
-    user = userCollection.find_one({"_id": ObjectId(user_id)})
-
-    if user is None:
-        result["status"] = "user not found"
-    else:
-        user["_id"] = str(user["_id"])
-        result["status"] = "user found"
-        result["user"] = user
-    result["success"] = 1
+    try:
+        user_id = data["user_id"]
+        user = userCollection.find_one({"_id": ObjectId(user_id)})
+        result["success"] = 1
+        if user is None:
+            result["status"] = "user not found"
+        else:
+            user["_id"] = str(user["_id"])
+            result["status"] = "user found"
+            result["user"] = user
+            if result["user"]["user_profile_pic"]!="":
+                result["user"]["user_profile_pic"] = "http://192.168.0.106:5000/static/profile_pic/"+result["user"]["_id"]+"_profile_pic_"+result["user"]["user_profile_pic"]
+    except:
+        result["success"] = 1
+        result["status"] = "Internal Server Error"
+   
     return jsonify(result)
 
 
@@ -220,7 +234,10 @@ def fetchAllRestaurant():
         user = userCollection.find_one(
             {"_id": ObjectId(x["user_id"])})
         x["user_name"] = user["user_name"]
-        x["user_profile_pic"] = user["user_profile_pic"]
+        if user["user_profile_pic"]!="":
+            x["user_profile_pic"] = "http://192.168.0.106:5000/static/profile_pic/"+str(user["_id"])+"_profile_pic_"+user["user_profile_pic"]
+        else:
+            x["user_profile_pic"]=user["user_profile_pic"]
         x["user_email"] = user["user_email"]
         restaurantList.append(x)
     result["success"] = 1
@@ -391,7 +408,6 @@ def bookingListByRestaurantId():
 
     result["success"] = 1
     result["incompleteBookingList"] = incompleteBookingList
-    print(completedBookingList)
     result["completedBookingList"] = completedBookingList
     return jsonify(result)
 
