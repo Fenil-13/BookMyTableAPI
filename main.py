@@ -297,7 +297,7 @@ def addTables():
 def getTables():
     result = dict()
     result["success"] = 0
-    print(request.data)
+    # print(request.data)
     data = json.loads(request.data.decode('utf8'))
 
     restaurant_id = data["restaurant_id"]
@@ -324,7 +324,7 @@ def getTables():
     return jsonify(result)
 
 
-@app.route("/book_table", methods=["GET","POST"])
+@app.route("/book_table", methods=["GET", "POST"])
 def bookTable():
     result = dict()
     result["success"] = 0
@@ -332,7 +332,7 @@ def bookTable():
         data = json.loads(request.data.decode('utf8'))
         table_id = data["table_id"]
         table_type = data["table_type"]
-        time_slot =data["time_slot"]
+        time_slot = data["time_slot"]
         user_id = data["user_id"]
         user_name = data["user_name"]
         booking_date = data["booking_date"]
@@ -350,25 +350,26 @@ def bookTable():
             "table_id": table_id,
             "table_type": table_type,
             "time_slot": time_slot,
-            "booking_date":booking_date
+            "booking_date": booking_date,
+            "status": "Pending"
         }
-        response=bookingCollection.insert_one(booking)
+        response = bookingCollection.insert_one(booking)
 
         result["success"] = 1
         result["status"] = "Booked"
-        result["booking_id"] =str(response.inserted_id)
+        result["booking_id"] = str(response.inserted_id)
     except:
         result["success"] = 1
         result["status"] = "Not Booked"
     return jsonify(result)
 
 
-@app.route("/booking_history", methods=["GET","POST"])
+@app.route("/booking_history", methods=["GET", "POST"])
 def bookingHistory():
     result = dict()
     result["success"] = 0
     data = json.loads(request.data.decode('utf8'))
-    user_id =data["user_id"]
+    user_id = data["user_id"]
     query = bookingCollection.find({"user_id": user_id})
     currentBookingList = list()
     completedBookingList = list()
@@ -378,7 +379,7 @@ def bookingHistory():
         result["booking_count"] = query.count()
         for x in query:
             x["_id"] = str(x["_id"])
-            if x["status"] == "Panding":
+            if x["status"] == "Pending":
                 currentBookingList.append(x)
             else:
                 completedBookingList.append(x)
@@ -388,7 +389,7 @@ def bookingHistory():
     return jsonify(result)
 
 
-@app.route("/booking_list_by_restaurant_id",methods=["GET","POST"])
+@app.route("/booking_list_by_restaurant_id", methods=["GET", "POST"])
 def bookingListByRestaurantId():
     result = dict()
     result["success"] = 0
@@ -401,7 +402,7 @@ def bookingListByRestaurantId():
 
     for x in query:
         x["_id"] = str(x["_id"])
-        if x["status"] == "Panding":
+        if x["status"] == "Pending":
             incompleteBookingList.append(x)
         if x["status"] == "Completed":
             completedBookingList.append(x)
@@ -429,7 +430,7 @@ def cancelBooking():
     return jsonify(result)
 
 
-@app.route("/order_completed",methods=["GET","POST"])
+@app.route("/order_completed", methods=["GET", "POST"])
 def orderCompleted():
     result = dict()
     result["success"] = 0
@@ -505,7 +506,7 @@ def updateRestaurant():
     return jsonify(result)
 
 
-@app.route("/user_get_restaurants", methods=["GET","POST"])
+@app.route("/user_get_restaurants", methods=["GET", "POST"])
 def userGetRestaurants():
     result = dict()
     result["success"] = 0
@@ -527,7 +528,8 @@ def userGetRestaurants():
 
     return jsonify(result)
 
-@app.route("/owner_get_restaurant_tables",methods=["GET","POST"])
+
+@app.route("/owner_get_restaurant_tables", methods=["GET", "POST"])
 def ownerGetRestaurantTables():
     result = dict()
     result["success"] = 0
@@ -549,8 +551,8 @@ def ownerGetRestaurantTables():
     return jsonify(result)
 
 
-@app.route("/admin_remove_table", methods=["GET", "POST"])
-def adminRemoveTable():
+@app.route("/owner_remove_restaurant_table", methods=["GET", "POST"])
+def ownerRemoveRestaurantTables():
     result = dict()
     result["success"] = 0
     data = json.loads(request.data.decode('utf8'))
@@ -558,6 +560,42 @@ def adminRemoveTable():
     tableCollection.delete_one({"_id": table_id})
     result["success"] = 1
 
+    return jsonify(result)
+
+
+@app.route("/all_booking_history", methods=["GET", "POST"])
+def allBookingHistory():
+    result = dict()
+    result["success"] = 0
+    query = bookingCollection.find()
+    currentBookingList = list()
+    completedBookingList = list()
+    if query.count() == 0:
+        result["booking_count"] = 0
+    else:
+        result["booking_count"] = query.count()
+        for x in query:
+            x["_id"] = str(x["_id"])
+            if x["status"] == "Pending":
+                currentBookingList.append(x)
+            else:
+                completedBookingList.append(x)
+    result["success"] = 1
+    result["currentBookingList"] = currentBookingList
+    result["completedBookingList"] = completedBookingList
+    return jsonify(result)
+
+
+@app.route("/verify_restaurant", methods=["GET", "POST"])
+def verifyRestaurant():
+    result = dict()
+    result["success"] = 0
+    data = json.loads(request.data.decode('utf8'))
+    restaurant_id = data["restaurant_id"]
+    restaurantCollection.update_one({"_id": ObjectId(restaurant_id)}, {
+                                    "$set": {"status": "Verified"}})
+    result["success"] = 1
+    result["status"] = "Verified"
     return jsonify(result)
 
 
