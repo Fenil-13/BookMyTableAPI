@@ -20,7 +20,7 @@ app = Flask(__name__)
 if local_server:
     app.config["profile_pic_upload_location"] = os.path.join(
         os.getcwd() + "\static\\profile_pic\\")
-    app.config["restaurant_pic_upload_location"] = os.path.join(
+    app.config["restaurant_profile_pic_upload_location"] = os.path.join(
         os.getcwd() + "\static\\restaurant_profile_pic\\")
 else:
     app.config["upload_location"] = os.path.join(os.getcwd() + "\static")
@@ -121,7 +121,10 @@ def uploadPic():
                 os.remove(app.config[f'{request.form["picture_type"]}_upload_location']+request.form["user_id"]
                             + "_"+request.form["picture_type"]+"_"+user["user_profile_pic"]) 
         except:
-            print("Old file Not deleted")  
+            print("Old file Not deleted") 
+        print( request.files["picture_file"])
+        print( request.form["picture_type"])
+        print( request.form["user_id"])
         picture_file = request.files["picture_file"]
 
         picture_file_name = secure_filename(request.form["user_id"]
@@ -372,20 +375,16 @@ def bookingHistory():
     user_id = data["user_id"]
     query = bookingCollection.find({"user_id": user_id})
     currentBookingList = list()
-    completedBookingList = list()
     if query.count() == 0:
         result["booking_count"] = 0
     else:
         result["booking_count"] = query.count()
         for x in query:
             x["_id"] = str(x["_id"])
-            if x["status"] == "Pending":
-                currentBookingList.append(x)
-            else:
-                completedBookingList.append(x)
+            currentBookingList.append(x)
+            
     result["success"] = 1
-    result["currentBookingList"] = currentBookingList
-    result["completedBookingList"] = completedBookingList
+    result["bookingList"] = currentBookingList
     return jsonify(result)
 
 
@@ -458,7 +457,7 @@ def createRestaurant():
         restaurant = {
             "user_id": data["user_id"],
             "restaurant_name": data["restaurant_name"],
-            "restaurant_pics": [],
+            "restaurant_pics": ["","","",""],
             "restaurant_short_desc": data["restaurant_short_desc"],
             "restaurant_long_desc": data["restaurant_long_desc"],
             "restaurant_opening_time": data["restaurant_opening_time"],
@@ -591,13 +590,107 @@ def verifyRestaurant():
     result = dict()
     result["success"] = 0
     data = json.loads(request.data.decode('utf8'))
+
+
+    # os.remove(app.config['restaurant_profile_pic_upload_location_upload_location']+data["restaurant_id"]
+    #                         + "_restaurant_profile_pic_"+restaurant["restaurant_pics"][0]) 
+    # os.remove(app.config['restaurant_profile_pic_upload_location_upload_location']+data["restaurant_id"]
+    #                         + "_restaurant_profile_pic"+_"+restaurant["restaurant_pics"][1]) 
+    # os.remove(app.config['restaurant_profile_pic_upload_location_upload_location']+data["restaurant_id"]
+    #                         + "_restaurant_profile_pic"+data["picture_type"]+"_"+restaurant["restaurant_pics"][2]) 
+    # os.remove(app.config['restaurant_profile_pic_upload_location_upload_location']+data["restaurant_id"]
+    #                         + "_restaurant_profile_pic"+data["picture_type"]+"_"+restaurant["restaurant_pics"][3]) 
+
+
     restaurant_id = data["restaurant_id"]
     restaurantCollection.update_one({"_id": ObjectId(restaurant_id)}, {
-                                    "$set": {"status": "Verified"}})
+                                    "$set": {"status": "Verified",
+                                     "restaurant_pics": ["","","",""]}})
     result["success"] = 1
     result["status"] = "Verified"
     return jsonify(result)
 
+@app.route("/uplod_restaurant_pics", methods=["GET", "POST"])
+def uploadResturantPic():
+    result = dict()
+    try:
+        restaurant = restaurantCollection.find_one(
+            {"_id": ObjectId(request.form["restaurant_id"])})
+        print(restaurant)
+        print(restaurant["restaurant_pics"][0])
+        if restaurant["restaurant_pics"][0]!='':
+           os.remove(app.config[f'{request.form["picture_type"]}_upload_location']+request.form["restaurant_id"]
+                            + "_"+request.form["picture_type"]+"_"+restaurant["restaurant_pics"][0]) 
+           os.remove(app.config[f'{request.form["picture_type"]}_upload_location']+request.form["restaurant_id"]
+                            + "_"+request.form["picture_type"]+"_"+restaurant["restaurant_pics"][1]) 
+           os.remove(app.config[f'{request.form["picture_type"]}_upload_location']+request.form["restaurant_id"]
+                            + "_"+request.form["picture_type"]+"_"+restaurant["restaurant_pics"][2]) 
+           os.remove(app.config[f'{request.form["picture_type"]}_upload_location']+request.form["restaurant_id"]
+                            + "_"+request.form["picture_type"]+"_"+restaurant["restaurant_pics"][3]) 
+
+        pic1_file = request.files["pic1"]
+        print(pic1_file)
+        pic1_file_name = secure_filename(request.form["restaurant_id"]
+                                        + "_"+request.form["picture_type"]+"_"+pic1_file.filename)
+        
+        print(f'{request.form["picture_type"]}_upload_location')
+        pic1_file.save(
+        os.path.join(app.config[f'{request.form["picture_type"]}_upload_location'],
+                        pic1_file_name))
+
+
+        pic2_file = request.files["pic2"]
+
+        pic2_file_name = secure_filename(request.form["restaurant_id"]
+                                        + "_"+request.form["picture_type"]+"_"+pic2_file.filename)
+        pic2_file.save(
+        os.path.join(app.config[f'{request.form["picture_type"]}_upload_location'],
+                        pic2_file_name))
+
+
+        pic3_file = request.files["pic3"]
+
+        pic3_file_name = secure_filename(request.form["restaurant_id"]
+                                        + "_"+request.form["picture_type"]+"_"+pic3_file.filename)
+        pic3_file.save(
+        os.path.join(app.config[f'{request.form["picture_type"]}_upload_location'],
+                        pic3_file_name))
+
+        pic4_file = request.files["pic4"]
+
+        pic4_file_name = secure_filename(request.form["restaurant_id"]
+                                        + "_"+request.form["picture_type"]+"_"+pic4_file.filename)
+        pic4_file.save(
+        os.path.join(app.config[f'{request.form["picture_type"]}_upload_location'],
+                        pic4_file_name))
+
+
+        updatedPics=[pic1_file.filename,pic2_file.filename,
+                    pic3_file.filename,pic4_file.filename]
+        print(updatedPics)
+        query = {"_id": ObjectId(request.form["restaurant_id"])}
+        update = {"$set": {"restaurant_pics": updatedPics}}
+        restaurantCollection.update_one(query, update)
+        result["success"] = 1
+        result["updated_files"]=updatedPics
+        return jsonify(result)
+    except:
+        result["success"] = 0
+        result["updated_files"] = []
+        return jsonify(result)
+
+@app.route("/dashboard",methods=["GET","POST"])
+def dashboard():
+    result = dict()
+    result["success"] = 0
+    booking = bookingCollection.find()
+    user = userCollection.find()
+    booking = bookingCollection.find()
+    resturant = restaurantCollection.find()
+    result["booking_count"] = booking.count()
+    result["user_count"] = user.count()
+    result["resturant_count"] = resturant.count()
+    return jsonify(result)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
